@@ -16,6 +16,10 @@ on:
         type: string
         required: false
         default: ''
+      affine-pro-public-key:
+        type: string
+        required: false
+        default: ''
 
 permissions:
   contents: 'write'
@@ -146,7 +150,7 @@ jobs:
       - name: Build Rust
         uses: ./.github/actions/build-rust
         env:
-          AFFINE_PRO_PUBLIC_KEY: ${{ secrets.AFFINE_PRO_PUBLIC_KEY }}
+          AFFINE_PRO_PUBLIC_KEY: ${{ secrets.AFFINE_PRO_PUBLIC_KEY || inputs.affine-pro-public-key }}
           AFFINE_PRO_LICENSE_AES_KEY: ${{ secrets.AFFINE_PRO_LICENSE_AES_KEY }}
         with:
           target: ${{ matrix.targets.name }}

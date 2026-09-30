@@ -28,6 +28,11 @@ jobs:
       build-type: canary
       app-version: ${{ needs.prepare.outputs.app-version }}
       git-short-hash: ${{ github.sha }}
+      affine-pro-public-key: |
+        -----BEGIN PUBLIC KEY-----
+        MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEObwJiTmbui7rkWfPJ7Lozvuy2Rcl
+        otcrb0V6dlS2ijKEShm7ZttTwQn08xzesdjX/AxpoR5X9yfoHkauIBuuMQ==
+        -----END PUBLIC KEY-----
       image-tags: |
         ghcr.io/iszkq/affine:zh-byok
         ghcr.io/iszkq/affine:sha-${{ github.sha }}
