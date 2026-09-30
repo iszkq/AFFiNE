@@ -34,6 +34,36 @@ yarn affine server dev
 
 `.docker/selfhost/compose.yml` 默认拉取上游镜像 `ghcr.io/toeverything/affine:stable`，不会包含本仓库的中文化和自定义模型发现改动。部署二次开发版本时，先构建自己的镜像，再设置 `AFFINE_IMAGE`；服务容器和迁移容器必须使用同一镜像版本。
 
+### 在 GitHub 构建镜像（推荐给 1Panel）
+
+在仓库的 **Actions → Build Self-hosted Image → Run workflow** 中选择 `canary` 并启动。工作流会复用项目原有的前端、Rust Native、服务端和多架构 Docker 构建流程，成功后发布到 GitHub Container Registry（GHCR）：
+
+- `ghcr.io/iszkq/affine:zh-byok`：便于日常更新，会被下一次成功构建覆盖。
+- `ghcr.io/iszkq/affine:sha-<完整提交 SHA>`：固定版本，适合生产部署和回滚。
+
+首次发布后到 GitHub 仓库的 **Packages → affine → Package settings** 将镜像设为 Public，1Panel 才能免登录拉取。如果保持 Private，则在 1Panel 中添加 `ghcr.io` 仓库凭据。GitHub 登录令牌不要写入 Compose 文件。工作流成功只表示镜像已发布，还需要在 1Panel 上部署；不要使用上游 `stable` 镜像。
+
+在 1Panel 服务器的文件管理器中创建 `/opt/affine`，将本仓库 `.docker/selfhost/compose.yml` 上传为 `/opt/affine/compose.yml`，将 `.docker/selfhost/config.json.example` 上传为 `/opt/affine/config/config.json`。创建 `/opt/affine/.env`：
+
+```dotenv
+AFFINE_IMAGE=ghcr.io/iszkq/affine:sha-<完整提交 SHA>
+```
+
+把 `config/config.json` 中的 `server.externalUrl` 改为最终访问的 `https://你的域名`。然后在 **1Panel → 容器 → 编排** 中从 `/opt/affine/compose.yml` 创建并启动编排。如果 1Panel 的编排编辑器未加载同目录 `.env`，就在编排内容里把两处 `image: ${AFFINE_IMAGE:-...}` 都改成相同的 `ghcr.io/iszkq/affine:sha-<完整提交 SHA>`。
+
+如果你的 1Panel 版本不提供从文件导入，可在 1Panel 终端运行：
+
+```bash
+cd /opt/affine
+mkdir -p data/storage data/postgres
+docker compose -f compose.yml pull
+docker compose -f compose.yml up -d
+docker compose -f compose.yml ps
+docker compose -f compose.yml logs --tail=100 affine_migration affine
+```
+
+随后在 1Panel 的网站管理中为该域名配置 HTTPS 和反向代理，目标为 `http://127.0.0.1:3010`。首次安装应先确认迁移任务成功，再访问站点。更新时先备份 `/opt/affine/data` 与 `/opt/affine/config`，修改 `.env` 中的固定镜像标签后重新拉取并启动。
+
 在 Linux amd64 构建机上，可按本仓库的 `.github/workflows/build-images.yml` 顺序构建单架构镜像（需要 Node 22、Yarn 4、Rust 和 Docker）：
 
 ```bash

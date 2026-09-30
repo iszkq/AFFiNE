@@ -192,6 +192,8 @@ Use Docker Compose with an image built from this repository to deploy the locali
 
 下面的 Compose 默认使用上游镜像，仅适合先验证部署环境；它不会包含本仓库的中文界面和自定义模型发现改动。要部署自己的版本，先按下文构建镜像，并将 `AFFINE_IMAGE` 指向该镜像。服务和迁移任务会使用同一个镜像。
 
+最方便的方式是在 GitHub 仓库的 **Actions → Build Self-hosted Image → Run workflow** 手动构建。成功后可在 1Panel 中直接拉取 `ghcr.io/iszkq/affine:zh-byok`；生产环境建议使用运行结果中的 `sha-<完整提交 SHA>` 固定标签。首次使用请在 GitHub **Packages** 中将镜像设为 Public，或者给 1Panel 配置 GHCR 凭据。详细步骤见 [`docs/self-hosting-zh.md`](docs/self-hosting-zh.md)。
+
 在仓库根目录执行：
 
 ```bash
