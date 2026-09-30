@@ -301,4 +301,35 @@ mod tests {
       RouteDecision::NoRoute(RouteDecisionReason::NoCompatibleTarget)
     ));
   }
+
+  #[test]
+  fn self_hosted_route_accepts_unlisted_custom_model() {
+    let slot = catalog::slot("chat.default").unwrap();
+    let profiles = vec![profile(
+      "gateway",
+      ProfileSource::Server,
+      "vendor/unknown:latest",
+      ModelOutput::Text,
+    )];
+    let target = TargetOverride {
+      profile_id: "gateway".to_string(),
+      model_id: "vendor/unknown:latest".to_string(),
+    };
+    let RouteDecision::Ready(candidates) = decide(RoutePolicyInput {
+      slot: &slot,
+      deployment: Deployment::SelfHosted,
+      byok_enabled: true,
+      access_available: false,
+      profiles: &profiles,
+      target_override: Some(&target),
+      target_override_managed: false,
+    }) else {
+      panic!("unlisted custom model should be routable on self-hosted deployments");
+    };
+    assert_eq!(candidates.len(), 1);
+    assert_eq!(
+      profiles[candidates[0].profile_index].models[candidates[0].model_index].model_id,
+      target.model_id
+    );
+  }
 }

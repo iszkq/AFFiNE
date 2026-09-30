@@ -9,7 +9,9 @@ import { SUPPORTED_LANGUAGES } from './resources';
 
 const logger = new DebugLogger('i18n');
 
-const defaultLng: Language = 'en';
+// Chinese is the default for new installations. A previously selected
+// language is still restored by the application cache.
+const defaultLng: Language = 'zh-Hans';
 
 let _instance: i18n | null = null;
 export const getOrCreateI18n = (): i18n => {
@@ -40,8 +42,8 @@ export const getOrCreateI18n = (): i18n => {
       .init({
         lng: defaultLng,
         fallbackLng: code => {
-          // always fallback to english
-          const fallbacks: string[] = [defaultLng];
+          // Use Chinese by default, then English for keys not translated yet.
+          const fallbacks: string[] = [defaultLng, 'en'];
           const langPart = code.split('-')[0];
 
           // fallback xx-YY to xx, e.g. es-AR to es

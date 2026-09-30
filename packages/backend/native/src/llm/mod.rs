@@ -9,10 +9,11 @@ pub(crate) mod route;
 pub use action::copilot_action_recipe;
 pub use byok::{
   ByokCapabilityInput, ByokCatalogModelOutput, ByokCatalogOutput, ByokCatalogProviderOutput, ByokEndpointInput,
+  ByokDiscoveredModelOutput,
   ByokLocalLeaseOutput, ByokModelDeclarationInput, ByokModelProbeCheckOutput, ByokModelProbeOutput, ByokPolicyOutput,
   ByokProbeCheckInput, ByokProbeResultOutput, ByokProbeStatusOutput, ByokProfileDefinitionInput, ByokProfileOrderInput,
   ByokProfileOutput, ByokValidationOutput, CreateByokLocalLeaseInput, CreateByokLocalLeaseProviderInput,
-  CreateByokProfileInput, ProbeByokDraftInput, ProbeByokProfileInput, ReorderByokProfilesInput,
+  CreateByokProfileInput, DiscoverByokModelsInput, ProbeByokDraftInput, ProbeByokProfileInput, ReorderByokProfilesInput,
   ReplaceByokProfileInput, RotateByokCredentialInput, byok_catalog,
 };
 

@@ -1,0 +1,6 @@
+mutation discoverWorkspaceByokModels($input: DiscoverWorkspaceByokModelsInput!) {
+  discoverWorkspaceByokModels(input: $input) {
+    modelId
+    displayName
+  }
+}

@@ -881,6 +881,13 @@ export interface CreateWorkspaceByokProfileInput {
   workspaceId: Scalars['String']['input'];
 }
 
+export interface DiscoverWorkspaceByokModelsInput {
+  credential: Scalars['String']['input'];
+  endpoint: WorkspaceByokEndpointInput;
+  provider: ByokProvider;
+  workspaceId: Scalars['String']['input'];
+}
+
 export interface CredentialsRequirementType {
   __typename?: 'CredentialsRequirementType';
   password: PasswordLimitsType;
@@ -1789,6 +1796,7 @@ export interface Mutation {
   createWorkspace: WorkspaceType;
   createWorkspaceByokLocalLease: CreateWorkspaceByokLocalLeaseResultType;
   createWorkspaceByokProfile: WorkspaceByokProfileType;
+  discoverWorkspaceByokModels: Array<WorkspaceByokDiscoveredModelType>;
   deactivateLicense: Scalars['Boolean']['output'];
   deleteAccount: DeleteAccount;
   deleteAuthSigningKey: Array<AuthSigningKeyType>;
@@ -2018,6 +2026,10 @@ export interface MutationCreateWorkspaceByokLocalLeaseArgs {
 
 export interface MutationCreateWorkspaceByokProfileArgs {
   input: CreateWorkspaceByokProfileInput;
+}
+
+export interface MutationDiscoverWorkspaceByokModelsArgs {
+  input: DiscoverWorkspaceByokModelsInput;
 }
 
 export interface MutationDeactivateLicenseArgs {
@@ -3405,6 +3417,12 @@ export interface WorkspaceByokCatalogType {
   __typename?: 'WorkspaceByokCatalogType';
   providers: Array<WorkspaceByokCatalogProviderType>;
   version: Scalars['String']['output'];
+}
+
+export interface WorkspaceByokDiscoveredModelType {
+  __typename?: 'WorkspaceByokDiscoveredModelType';
+  displayName: Maybe<Scalars['String']['output']>;
+  modelId: Scalars['String']['output'];
 }
 
 export interface WorkspaceByokEndpointInput {
@@ -7390,6 +7408,19 @@ export type ProbeWorkspaceByokDraftMutation = {
   };
 };
 
+export type DiscoverWorkspaceByokModelsMutationVariables = Exact<{
+  input: DiscoverWorkspaceByokModelsInput;
+}>;
+
+export type DiscoverWorkspaceByokModelsMutation = {
+  __typename?: 'Mutation';
+  discoverWorkspaceByokModels: Array<{
+    __typename?: 'WorkspaceByokDiscoveredModelType';
+    modelId: string;
+    displayName: string | null;
+  }>;
+};
+
 export type CreateWorkspaceByokProfileMutationVariables = Exact<{
   input: CreateWorkspaceByokProfileInput;
 }>;
@@ -8563,6 +8594,11 @@ export type Mutations =
       name: 'probeWorkspaceByokDraftMutation';
       variables: ProbeWorkspaceByokDraftMutationVariables;
       response: ProbeWorkspaceByokDraftMutation;
+    }
+  | {
+      name: 'discoverWorkspaceByokModelsMutation';
+      variables: DiscoverWorkspaceByokModelsMutationVariables;
+      response: DiscoverWorkspaceByokModelsMutation;
     }
   | {
       name: 'createWorkspaceByokProfileMutation';

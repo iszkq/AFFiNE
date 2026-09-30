@@ -5,6 +5,7 @@ import {
   ByokOpenAiDialect,
   ByokProvider,
   createWorkspaceByokProfileMutation,
+  discoverWorkspaceByokModelsMutation,
   probeWorkspaceByokDraftMutation,
   replaceWorkspaceByokProfileMutation,
 } from '@affine/graphql';
@@ -31,6 +32,27 @@ import {
 } from './model-utils';
 import type { ByokDefinition, ByokKey, ByokSettings, GqlFn } from './types';
 import { ByokStorage } from './types';
+
+function probeErrorMessage(errorKind?: string | null) {
+  switch (errorKind) {
+    case 'authentication':
+      return 'API Key 无效或未被服务商接受。';
+    case 'permission':
+      return '当前 API Key 没有访问该模型的权限。';
+    case 'rate_limited':
+      return '服务商请求次数已达到限制。';
+    case 'unavailable':
+      return '服务商暂时不可用。';
+    case 'transport':
+      return '无法连接到 API Base URL。';
+    case 'invalid_response':
+      return '服务商返回的数据格式不兼容。';
+    case 'model_disabled':
+      return '该模型已停用。';
+    default:
+      return '连接测试失败，请检查 API Base URL、API Key 和模型。';
+  }
+}
 
 export const AddKeyModal = ({
   workspaceId,
@@ -73,7 +95,14 @@ export const AddKeyModal = ({
   const [testStatus, setTestStatus] = useState<'passed' | 'failed' | null>(
     null
   );
+  const [testError, setTestError] = useState<string | null>(null);
   const [includeImageProbe, setIncludeImageProbe] = useState(false);
+  const [discoveredModels, setDiscoveredModels] = useState<
+    Array<{ modelId: string; displayName?: string | null }>
+  >([]);
+  const [discoveringModels, setDiscoveringModels] = useState(false);
+  const [discoveryError, setDiscoveryError] = useState<string | null>(null);
+  const discoveryRevision = useRef(0);
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
   const localStorageUnavailable = !localStorageSupported || !canAddLocalKey;
@@ -116,7 +145,12 @@ export const AddKeyModal = ({
       editingKey?.definition.models ?? defaultModels(settings, nextProvider)
     );
     setTestStatus(null);
+    setTestError(null);
     setIncludeImageProbe(false);
+    setDiscoveredModels([]);
+    setDiscoveringModels(false);
+    setDiscoveryError(null);
+    discoveryRevision.current++;
   }, [canAddServerKey, editingKey, open, settings]);
 
   const definition = useMemo<ByokDefinition>(
@@ -137,7 +171,16 @@ export const AddKeyModal = ({
     [customEndpoint, dialect, endpoint, models]
   );
 
-  const invalidateTest = () => setTestStatus(null);
+  const invalidateTest = () => {
+    setTestStatus(null);
+    setTestError(null);
+  };
+  const invalidateDiscovery = () => {
+    discoveryRevision.current++;
+    setDiscoveredModels([]);
+    setDiscoveryError(null);
+    setDiscoveringModels(false);
+  };
   const runProbe = useCallback(async () => {
     if (!gql) return { passed: false, definition };
     const canReuseServerCredential =
@@ -171,6 +214,9 @@ export const AddKeyModal = ({
       hasVerifiedCheck &&
       nextModels.some(model => model.enabled && model.capabilities.length > 0);
     if (passed) setModels(nextModels);
+    setTestError(
+      passed ? null : probeErrorMessage(probe.connection.errorKind)
+    );
     setTestStatus(passed ? 'passed' : 'failed');
     return { passed, definition: nextDefinition };
   }, [
@@ -183,6 +229,46 @@ export const AddKeyModal = ({
     provider,
     workspaceId,
   ]);
+
+  const discoverModels = useCallback(async () => {
+    if (!gql || !customEndpoint || !endpoint.trim() || !dialect) return;
+    if (!apiKey.trim()) {
+      setDiscoveryError(byokT(t, 'models.discovery-key-required'));
+      return;
+    }
+    const revision = ++discoveryRevision.current;
+    setDiscoveringModels(true);
+    setDiscoveryError(null);
+    try {
+      const result = await gql({
+        query: discoverWorkspaceByokModelsMutation,
+        variables: {
+          input: {
+            workspaceId,
+            provider,
+            credential: apiKey,
+            endpoint: {
+              kind: ByokEndpointKind.openai_compatible,
+              url: endpoint,
+              dialect,
+            },
+          },
+        },
+      });
+      if (revision !== discoveryRevision.current) return;
+      const models = result.discoverWorkspaceByokModels ?? [];
+      setDiscoveredModels(models);
+      if (!models.length) {
+        setDiscoveryError(byokT(t, 'models.discovery-empty'));
+      }
+    } catch (error) {
+      if (revision !== discoveryRevision.current) return;
+      setDiscoveryError(byokT(t, 'models.discovery-failed'));
+      logByokError('Failed to discover BYOK models', error);
+    } finally {
+      if (revision === discoveryRevision.current) setDiscoveringModels(false);
+    }
+  }, [apiKey, customEndpoint, dialect, endpoint, gql, provider, t, workspaceId]);
 
   const persist = useCallback(
     async (persistedDefinition = definition) => {
@@ -352,6 +438,7 @@ export const AddKeyModal = ({
                 setDialect(null);
                 setModels(defaultModels(settings, next));
                 invalidateTest();
+                invalidateDiscovery();
               }}
             >
               {settings.policy.allowedProviders.map(item => (
@@ -413,6 +500,7 @@ export const AddKeyModal = ({
               onChange={value => {
                 setApiKey(value);
                 invalidateTest();
+                invalidateDiscovery();
               }}
               type="password"
               placeholder={
@@ -444,6 +532,7 @@ export const AddKeyModal = ({
                       setModels(defaultModels(settings, provider));
                     }
                     invalidateTest();
+                    invalidateDiscovery();
                   }}
                 />
                 {byokT(t, 'endpoint.use-custom')}
@@ -465,6 +554,7 @@ export const AddKeyModal = ({
                       onChange={value => {
                         setEndpoint(value);
                         invalidateTest();
+                        invalidateDiscovery();
                       }}
                       placeholder="https://api.example.com/v1"
                     />
@@ -484,6 +574,7 @@ export const AddKeyModal = ({
                       onChange={event => {
                         setDialect(event.target.value as ByokOpenAiDialect);
                         invalidateTest();
+                        invalidateDiscovery();
                       }}
                     >
                       <option value="" disabled>
@@ -497,6 +588,29 @@ export const AddKeyModal = ({
                       </option>
                     </select>
                   </label>
+                  <Button
+                    variant="secondary"
+                    disabled={
+                      discoveringModels || !endpoint.trim() || !dialect
+                    }
+                    onClick={() => {
+                      discoverModels().catch(error => {
+                        logByokError('Failed to discover BYOK models', error);
+                        setDiscoveryError(byokT(t, 'models.discovery-failed'));
+                        setDiscoveringModels(false);
+                      });
+                    }}
+                  >
+                    {byokT(
+                      t,
+                      discoveringModels
+                        ? 'action.discovering-models'
+                        : 'action.discover-models'
+                    )}
+                  </Button>
+                  {discoveryError ? (
+                    <span className={styles.fieldHint}>{discoveryError}</span>
+                  ) : null}
                 </>
               ) : null}
             </>
@@ -523,6 +637,7 @@ export const AddKeyModal = ({
               setModels(models);
               invalidateTest();
             }}
+            discoveredModels={discoveredModels}
           />
         </div>
 
@@ -581,7 +696,7 @@ export const AddKeyModal = ({
             {testStatus === 'passed'
               ? byokT(t, 'probe.verified')
               : testStatus === 'failed'
-                ? byokT(t, 'probe.failed')
+                ? testError ?? byokT(t, 'probe.failed')
                 : ''}
           </span>
           <Button
@@ -591,6 +706,7 @@ export const AddKeyModal = ({
               testConnection().catch(error => {
                 logByokError('Failed to test BYOK provider', error);
                 setTestStatus('failed');
+                setTestError(probeErrorMessage());
               });
             }}
           >

@@ -1,6 +1,6 @@
 use std::{
   collections::BTreeSet,
-  net::{IpAddr, Ipv4Addr, Ipv6Addr},
+  net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
   time::Duration,
 };
 
@@ -79,6 +79,10 @@ impl ByokPolicy {
     if self.allow_private_endpoint {
       return Ok(());
     }
+    self.resolve_public_addresses(url).await.map(|_| ())
+  }
+
+  pub(crate) async fn resolve_public_addresses(&self, url: &str) -> RuntimeResult<Vec<SocketAddr>> {
     let parsed = url::Url::parse(url).map_err(|_| RuntimeError::invalid_input("invalid BYOK endpoint"))?;
     let host = parsed
       .host_str()
@@ -91,17 +95,17 @@ impl ByokPolicy {
       .await
       .map_err(|_| RuntimeError::invalid_input("BYOK endpoint DNS resolution timed out"))?
       .map_err(|_| RuntimeError::invalid_input("BYOK endpoint DNS resolution failed"))?;
-    let mut resolved = false;
+    let mut resolved = Vec::new();
     for address in addresses {
-      resolved = true;
       if !is_public(address.ip()) {
         return Err(RuntimeError::invalid_input("private BYOK endpoints are disabled"));
       }
+      resolved.push(address);
     }
-    if !resolved {
+    if resolved.is_empty() {
       return Err(RuntimeError::invalid_input("BYOK endpoint DNS resolution failed"));
     }
-    Ok(())
+    Ok(resolved)
   }
 
   pub(crate) fn allows(&self, provider: &str, endpoint: &ByokEndpoint) -> bool {

@@ -67,8 +67,8 @@ pub(super) use super::{
 };
 use crate::{
   llm::{
-    ByokLocalLeaseOutput, ByokPolicyOutput, ByokProbeResultOutput, ByokProfileOutput, CreateByokLocalLeaseInput,
-    CreateByokProfileInput, ProbeByokDraftInput, ProbeByokProfileInput, ReorderByokProfilesInput,
+    ByokDiscoveredModelOutput, ByokLocalLeaseOutput, ByokPolicyOutput, ByokProbeResultOutput, ByokProfileOutput,
+    CreateByokLocalLeaseInput, CreateByokProfileInput, DiscoverByokModelsInput, ProbeByokDraftInput, ProbeByokProfileInput,
     ReplaceByokProfileInput, RotateByokCredentialInput,
   },
   runtime::config::{AppConfigChange, ServerConfig, ServerConfigHandle, save_app_config_changes},

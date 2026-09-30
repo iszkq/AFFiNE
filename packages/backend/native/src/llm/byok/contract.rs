@@ -124,6 +124,22 @@ pub struct ProbeByokDraftInput {
   pub checks: Vec<ByokProbeCheckInput>,
 }
 
+#[derive(Clone)]
+#[napi_derive::napi(object)]
+pub struct DiscoverByokModelsInput {
+  pub provider: String,
+  pub credential: String,
+  pub endpoint: ByokEndpointInput,
+}
+
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[napi_derive::napi(object)]
+pub struct ByokDiscoveredModelOutput {
+  pub model_id: String,
+  pub display_name: Option<String>,
+}
+
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[napi_derive::napi(object)]
@@ -258,6 +274,35 @@ pub(crate) enum ByokContractError {
   CapabilityUpperBound,
 }
 
+pub(crate) fn validate_endpoint(
+  provider: &str,
+  input: ByokEndpointInput,
+) -> Result<ByokEndpoint, ByokContractError> {
+  if !matches!(provider, "openai" | "anthropic" | "gemini" | "fal") {
+    return Err(ByokContractError::Provider);
+  }
+  match (
+    input.kind.as_str(),
+    input.url,
+    input.dialect.as_deref(),
+  ) {
+    ("provider_default", None, None) => Ok(ByokEndpoint::ProviderDefault),
+    ("openai_compatible", Some(url), Some(dialect))
+      if provider == "openai" && !url.trim().is_empty() =>
+    {
+      Ok(ByokEndpoint::OpenAiCompatible {
+        url: canonicalize_endpoint(&url).map_err(|_| ByokContractError::Endpoint)?,
+        dialect: match dialect {
+          "responses" => OpenAiDialect::Responses,
+          "chat_completions" => OpenAiDialect::ChatCompletions,
+          _ => return Err(ByokContractError::Endpoint),
+        },
+      })
+    }
+    _ => Err(ByokContractError::Endpoint),
+  }
+}
+
 impl ByokProfileDefinition {
   pub(crate) fn endpoint_identity(&self) -> &str {
     match &self.endpoint {
@@ -271,27 +316,7 @@ pub(crate) fn validate_definition(
   provider: &str,
   input: ByokProfileDefinitionInput,
 ) -> Result<ByokProfileDefinition, ByokContractError> {
-  if !matches!(provider, "openai" | "anthropic" | "gemini" | "fal") {
-    return Err(ByokContractError::Provider);
-  }
-  let endpoint = match (
-    input.endpoint.kind.as_str(),
-    input.endpoint.url,
-    input.endpoint.dialect.as_deref(),
-  ) {
-    ("provider_default", None, None) => ByokEndpoint::ProviderDefault,
-    ("openai_compatible", Some(url), Some(dialect)) if provider == "openai" && !url.trim().is_empty() => {
-      ByokEndpoint::OpenAiCompatible {
-        url: canonicalize_endpoint(&url).map_err(|_| ByokContractError::Endpoint)?,
-        dialect: match dialect {
-          "responses" => OpenAiDialect::Responses,
-          "chat_completions" => OpenAiDialect::ChatCompletions,
-          _ => return Err(ByokContractError::Endpoint),
-        },
-      }
-    }
-    _ => return Err(ByokContractError::Endpoint),
-  };
+  let endpoint = validate_endpoint(provider, input.endpoint)?;
   if input.models.is_empty() {
     return Err(ByokContractError::Required("models"));
   }

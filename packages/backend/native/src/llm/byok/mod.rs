@@ -6,13 +6,13 @@ mod validation;
 
 pub use catalog::{ByokCatalogModelOutput, ByokCatalogOutput, ByokCatalogProviderOutput, byok_catalog};
 pub use contract::{
-  ByokCapabilityInput, ByokEndpointInput, ByokLocalLeaseOutput, ByokModelDeclarationInput, ByokModelProbeCheckOutput,
-  ByokModelProbeOutput, ByokProbeCheckInput, ByokProbeResultOutput, ByokProbeStatusOutput, ByokProfileDefinitionInput,
-  ByokProfileOrderInput, ByokProfileOutput, ByokValidationOutput, CreateByokLocalLeaseInput,
-  CreateByokLocalLeaseProviderInput, CreateByokProfileInput, ProbeByokDraftInput, ProbeByokProfileInput,
-  ReorderByokProfilesInput, ReplaceByokProfileInput, RotateByokCredentialInput,
+  ByokCapabilityInput, ByokDiscoveredModelOutput, ByokEndpointInput, ByokLocalLeaseOutput, ByokModelDeclarationInput,
+  ByokModelProbeCheckOutput, ByokModelProbeOutput, ByokProbeCheckInput, ByokProbeResultOutput, ByokProbeStatusOutput,
+  ByokProfileDefinitionInput, ByokProfileOrderInput, ByokProfileOutput, ByokValidationOutput, CreateByokLocalLeaseInput,
+  CreateByokLocalLeaseProviderInput, CreateByokProfileInput, DiscoverByokModelsInput, ProbeByokDraftInput,
+  ProbeByokProfileInput, ReorderByokProfilesInput, ReplaceByokProfileInput, RotateByokCredentialInput,
 };
-pub(crate) use contract::{ByokEndpoint, ByokModelDeclaration, ByokProfileDefinition, validate_definition};
+pub(crate) use contract::{ByokEndpoint, ByokModelDeclaration, ByokProfileDefinition, validate_definition, validate_endpoint};
 pub(crate) use envelope::{CredentialEnvelopeKey, SensitiveCredential, local_aad, server_aad};
 pub(crate) use policy::ByokPolicy;
 pub use policy::ByokPolicyOutput;

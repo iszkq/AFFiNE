@@ -19,6 +19,7 @@ export declare class BackendRuntime {
   rotateByokCredential(input: RotateByokCredentialInput): Promise<ByokProfileOutput>
   probeByokProfile(input: ProbeByokProfileInput): Promise<ByokProbeResultOutput>
   probeByokDraft(input: ProbeByokDraftInput): Promise<ByokProbeResultOutput>
+  discoverByokModels(input: DiscoverByokModelsInput): Promise<Array<ByokDiscoveredModelOutput>>
   deleteByokProfile(workspaceId: string, profileId: string): Promise<boolean>
   reorderByokProfiles(input: ReorderByokProfilesInput): Promise<Array<ByokProfileOutput>>
   createByokLocalLease(input: CreateByokLocalLeaseInput): Promise<ByokLocalLeaseOutput>
@@ -332,6 +333,17 @@ export interface ByokEndpointInput {
   kind: string
   url?: string
   dialect?: string
+}
+
+export interface DiscoverByokModelsInput {
+  provider: string
+  credential: string
+  endpoint: ByokEndpointInput
+}
+
+export interface ByokDiscoveredModelOutput {
+  modelId: string
+  displayName?: string
 }
 
 export interface ByokLocalLeaseOutput {

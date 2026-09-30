@@ -1,4 +1,5 @@
 import { Button, ErrorMessage, Skeleton, Tooltip } from '@affine/component';
+import { ServerDeploymentType } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import { useLiveData, useService } from '@toeverything/infra';
 import { cssVar } from '@toeverything/theme';
@@ -38,6 +39,12 @@ export const StorageProgress = ({ onUpgrade }: StorageProgressProgress) => {
   const hasPaymentFeature = useLiveData(
     serverService.server.features$.map(f => f?.payment)
   );
+  const isSelfhosted = useLiveData(
+    serverService.server.config$.selector(
+      config => config.type === ServerDeploymentType.Selfhosted
+    )
+  );
+  const showPayment = hasPaymentFeature && !isSelfhosted;
   const subscription = useService(SubscriptionService).subscription;
   useEffect(() => {
     // revalidate subscription to get the latest status
@@ -63,8 +70,7 @@ export const StorageProgress = ({ onUpgrade }: StorageProgressProgress) => {
 
   if (loading) {
     if (loadError) {
-      // TODO(@catsjuice): i18n
-      return <ErrorMessage>Load error</ErrorMessage>;
+      return <ErrorMessage>加载失败</ErrorMessage>;
     }
     return <Skeleton height={42} />;
   }
@@ -91,7 +97,7 @@ export const StorageProgress = ({ onUpgrade }: StorageProgressProgress) => {
         </div>
       </div>
 
-      {hasPaymentFeature ? (
+      {showPayment ? (
         <Tooltip
           options={{ hidden: percent < 100 }}
           content={

@@ -1,6 +1,7 @@
 import { ErrorMessage, Skeleton } from '@affine/component';
-import { UserQuotaService } from '@affine/core/modules/cloud';
+import { ServerService, UserQuotaService } from '@affine/core/modules/cloud';
 import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
+import { ServerDeploymentType } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import { useLiveData, useService } from '@toeverything/infra';
 import { assignInlineVars } from '@vanilla-extract/dynamic';
@@ -14,6 +15,12 @@ import * as styles from './index.css';
 export const CloudUsage = () => {
   const t = useI18n();
   const quota = useService(UserQuotaService).quota;
+  const serverService = useService(ServerService);
+  const isSelfhosted = useLiveData(
+    serverService.server.config$.selector(
+      config => config.type === ServerDeploymentType.Selfhosted
+    )
+  );
   const quotaError = useLiveData(quota.error$);
 
   const workspaceDialogService = useService(WorkspaceDialogService);
@@ -33,9 +40,13 @@ export const CloudUsage = () => {
   const maxFormatted = useLiveData(quota.maxFormatted$);
   const percent = useLiveData(quota.percent$);
 
+  if (isSelfhosted) {
+    return null;
+  }
+
   if (percent === null) {
     if (quotaError) {
-      return <ErrorMessage>Failed to load quota</ErrorMessage>;
+      return <ErrorMessage>加载用量失败</ErrorMessage>;
     }
     return (
       <div>

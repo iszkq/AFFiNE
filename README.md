@@ -1,3 +1,7 @@
+> **中文自托管二次开发版**：本仓库在 AFFiNE 基础上完善简体中文界面、自托管 BYOK 和部署说明。OpenAI 兼容中转站可用自填 API Base URL 与 API Key 获取完整模型列表，选择任意返回的模型 ID，或手动添加模型并测试连接；模型选择不受 AFFiNE 内置目录限制。部署这些改动需[自行构建镜像并设置 `AFFINE_IMAGE`](docs/self-hosting-zh.md)，直接运行上游 `stable` 镜像不会包含它们。
+>
+> [中文二次开发与 Docker 部署指南](docs/self-hosting-zh.md) · [自托管 Compose](.docker/selfhost/compose.yml)
+
 <div align="center">
 
 <h1 style="border-bottom: none">
@@ -174,11 +178,47 @@ We would like to express our gratitude to all the individuals who have already c
 
 ## Self-Host
 
-Begin with Docker to deploy your own feature-rich, unrestricted version of AFFiNE. Our team is diligently updating to the latest version. For more information on how to self-host AFFiNE, please refer to our [documentation](https://docs.affine.pro/self-host-affine).
+Use Docker Compose with an image built from this repository to deploy the localized self-hosted version. See the Chinese guide below for image builds, persistence, upgrades, and BYOK setup.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/toeverything/AFFiNE)
+### 中文自托管与二次开发
 
-[![Run on Sealos](https://sealos.io/Deploy-on-Sealos.svg)](https://sealos.io/products/app-store/affine)
+本仓库的自托管 Docker 文件位于 `.docker/selfhost/`：
+
+- `compose.yml`：AFFiNE、迁移任务、Postgres 和 Redis 的容器编排。
+- `config.json.example`：自托管配置示例，已启用中文服务器名称和 BYOK。
+- `data/postgres`：Postgres 数据目录。
+- `data/storage`：附件和对象存储目录。
+- `config`：服务器配置目录，实际配置文件为 `config/config.json`。
+
+下面的 Compose 默认使用上游镜像，仅适合先验证部署环境；它不会包含本仓库的中文界面和自定义模型发现改动。要部署自己的版本，先按下文构建镜像，并将 `AFFINE_IMAGE` 指向该镜像。服务和迁移任务会使用同一个镜像。
+
+在仓库根目录执行：
+
+```bash
+mkdir -p .docker/selfhost/config .docker/selfhost/data/storage .docker/selfhost/data/postgres
+cp .docker/selfhost/config.json.example .docker/selfhost/config/config.json
+docker compose -f .docker/selfhost/compose.yml pull redis postgres
+docker compose -f .docker/selfhost/compose.yml up -d
+```
+
+Windows PowerShell 可以使用：
+
+```powershell
+New-Item -ItemType Directory -Force .docker/selfhost/config, .docker/selfhost/data/storage, .docker/selfhost/data/postgres
+Copy-Item .docker/selfhost/config.json.example .docker/selfhost/config/config.json
+docker compose -f .docker/selfhost/compose.yml up -d
+```
+
+容器名称分别是 `affine_server`、`affine_migration_job`、`affine_postgres` 和 `affine_redis`。查看日志：
+
+```bash
+docker compose -f .docker/selfhost/compose.yml ps
+docker compose -f .docker/selfhost/compose.yml logs -f affine
+```
+
+自托管 AI 支持 OpenAI、Anthropic、Gemini、FAL，以及 OpenAI 兼容的中转站。进入“设置 → 工作区 → AI 自带密钥（BYOK）”，填写 API Key 和 API Base URL（中转站通常以 `/v1` 结尾），选择正确的 API 方言后点击“获取模型列表”，即可从中转站返回的模型中批量选择；也可以手动填写任意模型 ID，不受 AFFiNE 内置目录限制。最后点击“测试连接”验证模型。完整中文部署、备份、升级和冲突说明见 [`docs/self-hosting-zh.md`](docs/self-hosting-zh.md)。
+
+部署自编译镜像时，Linux/macOS 使用 `export AFFINE_IMAGE=ghcr.io/iszkq/affine:zh-byok`；Windows PowerShell 使用 `$env:AFFINE_IMAGE = 'ghcr.io/iszkq/affine:zh-byok'`，再运行 Compose。镜像名只是示例，以实际构建或发布的标签为准。
 
 ## Feature Request
 
@@ -205,8 +245,6 @@ See [docs/contributing/tutorial.md](./docs/contributing/tutorial.md) for details
 ### Editions
 
 - AFFiNE Community Edition (CE) is the current available version, it's free for self-host under the MIT license.
-
-- AFFiNE Enterprise Edition (EE) is yet to be published, it will have more advanced features and enterprise-oriented offerings, including but not exclusive to rebranding and SSO, advanced admin and audit, etc., you may refer to https://affine.pro/pricing for more information
 
 See [LICENSE] for details.
 

@@ -2787,6 +2787,17 @@ export const probeWorkspaceByokDraftMutation = {
 }`,
 };
 
+export const discoverWorkspaceByokModelsMutation = {
+  id: 'discoverWorkspaceByokModelsMutation' as const,
+  op: 'discoverWorkspaceByokModels',
+  query: `mutation discoverWorkspaceByokModels($input: DiscoverWorkspaceByokModelsInput!) {
+  discoverWorkspaceByokModels(input: $input) {
+    modelId
+    displayName
+  }
+}`,
+};
+
 export const createWorkspaceByokProfileMutation = {
   id: 'createWorkspaceByokProfileMutation' as const,
   op: 'createWorkspaceByokProfile',

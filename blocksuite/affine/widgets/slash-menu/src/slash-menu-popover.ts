@@ -33,6 +33,10 @@ import {
   AFFINE_SLASH_MENU_TOOLTIP_TIMEOUT,
   AFFINE_SLASH_MENU_TRIGGER_KEY,
 } from './consts.js';
+import {
+  localizeSlashMenuItemName,
+  localizeSlashMenuText,
+} from './slash-menu-i18n.js';
 import { slashItemToolTipStyle, styles } from './styles.js';
 import type {
   SlashMenuActionItem,
@@ -151,7 +155,9 @@ export class SlashMenu extends WithDisposable(LitElement) {
 
       this._filteredItems = this._filteredItems.concat(
         queue.filter(({ name, searchAlias = [] }) =>
-          [name, ...searchAlias].some(str => isFuzzyMatch(str, searchStr))
+          [name, localizeSlashMenuItemName(name), ...searchAlias].some(str =>
+            isFuzzyMatch(str, searchStr)
+          )
         )
       );
 
@@ -425,6 +431,8 @@ export class InnerSlashMenu extends WithDisposable(LitElement) {
 
   private readonly _renderActionItem = (item: SlashMenuActionItem) => {
     const { name, icon, description, tooltip } = item;
+    const displayName = localizeSlashMenuItemName(name);
+    const displayDescription = localizeSlashMenuText(description);
 
     const hover = item === this._activeItem;
 
@@ -432,8 +440,8 @@ export class InnerSlashMenu extends WithDisposable(LitElement) {
       class="slash-menu-item ${slashItemClassName(item)}"
       width="100%"
       height="44px"
-      text=${name}
-      subText=${ifDefined(description)}
+      text=${displayName}
+      subText=${ifDefined(displayDescription)}
       data-testid="${name}"
       hover=${hover}
       @mousemove=${() => {
@@ -455,7 +463,9 @@ export class InnerSlashMenu extends WithDisposable(LitElement) {
           }}
         >
           <div class="tooltip-figure">${tooltip.figure}</div>
-          <div class="tooltip-caption">${tooltip.caption}</div>
+          <div class="tooltip-caption">
+            ${localizeSlashMenuText(tooltip.caption)}
+          </div>
         </affine-tooltip>`
       }
     </icon-button>`;
@@ -468,7 +478,10 @@ export class InnerSlashMenu extends WithDisposable(LitElement) {
     return html`<div class="slash-menu-group">
       ${when(
         !this.context.searching,
-        () => html`<div class="slash-menu-group-name">${groupName}</div>`
+        () =>
+          html`<div class="slash-menu-group-name">
+            ${localizeSlashMenuText(groupName)}
+          </div>`
       )}
       ${items.map(this._renderItem)}
     </div>`;
@@ -482,6 +495,8 @@ export class InnerSlashMenu extends WithDisposable(LitElement) {
 
   private readonly _renderSubMenuItem = (item: SlashMenuSubMenu) => {
     const { name, icon, description } = item;
+    const displayName = localizeSlashMenuItemName(name);
+    const displayDescription = localizeSlashMenuText(description);
 
     const hover = item === this._activeItem;
 
@@ -489,8 +504,8 @@ export class InnerSlashMenu extends WithDisposable(LitElement) {
       class="slash-menu-item ${slashItemClassName(item)}"
       width="100%"
       height="44px"
-      text=${name}
-      subText=${ifDefined(description)}
+      text=${displayName}
+      subText=${ifDefined(displayDescription)}
       data-testid="${name}"
       hover=${hover}
       @mousemove=${() => {

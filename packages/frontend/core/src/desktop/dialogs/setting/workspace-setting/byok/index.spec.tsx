@@ -76,6 +76,7 @@ const ByokEnums = vi.hoisted(() => ({
   },
 }));
 const createMutation = vi.hoisted(() => Symbol('create'));
+const discoverMutation = vi.hoisted(() => Symbol('discover'));
 const probeMutation = vi.hoisted(() => Symbol('probe'));
 const replaceMutation = vi.hoisted(() => Symbol('replace'));
 
@@ -171,6 +172,7 @@ vi.mock('@affine/graphql', () => ({
   ByokProvider,
   ...ByokEnums,
   createWorkspaceByokProfileMutation: createMutation,
+  discoverWorkspaceByokModelsMutation: discoverMutation,
   probeWorkspaceByokDraftMutation: probeMutation,
   replaceWorkspaceByokProfileMutation: replaceMutation,
 }));
@@ -357,6 +359,74 @@ describe('BYOK settings behavior', () => {
     );
 
     expect(screen.getByText('custom-chat')).toBeTruthy();
+  });
+
+  test('discovers unrestricted gateway models and keeps manual entry', async () => {
+    const gql = vi.fn(async ({ query }: { query: symbol }) => {
+      if (query === discoverMutation) {
+        return {
+          discoverWorkspaceByokModels: [
+            { modelId: 'vendor/unlisted:latest', displayName: 'Unlisted model' },
+          ],
+        };
+      }
+      throw new Error('Unexpected GraphQL operation');
+    });
+    render(
+      <AddKeyModal
+        workspaceId="workspace-1"
+        settings={settings() as never}
+        editingKey={null}
+        open
+        onOpenChange={vi.fn()}
+        onSaved={vi.fn()}
+        localKeys={[]}
+        setLocalKeys={vi.fn()}
+        localStorageSupported={false}
+        canAddServerKey
+        canAddLocalKey={false}
+        gql={gql as never}
+      />
+    );
+
+    fireEvent.change(document.querySelector('input[type="password"]')!, {
+      target: { value: 'gateway-token' },
+    });
+    fireEvent.click(screen.getByText('use-custom'));
+    fireEvent.change(screen.getByPlaceholderText('https://api.example.com/v1'), {
+      target: { value: 'https://gateway.example/v1' },
+    });
+    fireEvent.change(document.querySelectorAll('select')[1], {
+      target: { value: ByokEnums.ByokOpenAiDialect.chat_completions },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'discover-models' }));
+    await waitFor(() => expect(screen.getByText('Unlisted model')).toBeTruthy());
+
+    expect(gql.mock.calls[0]?.[0]).toMatchObject({
+      query: discoverMutation,
+      variables: {
+        input: {
+          credential: 'gateway-token',
+          endpoint: { url: 'https://gateway.example/v1' },
+        },
+      },
+    });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Unlisted model' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'add-discovered-models' })
+    );
+    expect(screen.getByText('vendor/unlisted:latest')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'add-model' }));
+    fireEvent.change(screen.getByPlaceholderText('model-id'), {
+      target: { value: 'manual-only-model' },
+    });
+    fireEvent.click(
+      within(screen.getAllByRole('dialog').at(-1)!).getByRole('button', {
+        name: 'add-model',
+      })
+    );
+    expect(screen.getByText('manual-only-model')).toBeTruthy();
   });
 
   test('requires model verification before saving the selected models', async () => {

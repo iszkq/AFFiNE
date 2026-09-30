@@ -1,7 +1,9 @@
 import { Popover, uniReactRoot } from '@affine/component';
 import { Button } from '@affine/component/ui/button';
 import { Menu, MenuItem } from '@affine/component/ui/menu';
+import { ServerService } from '@affine/core/modules/cloud';
 import { PeekViewService } from '@affine/core/modules/peek-view/services/peek-view';
+import { ServerDeploymentType } from '@affine/graphql';
 import {
   type Cell,
   type CellRenderProps,
@@ -26,6 +28,7 @@ import {
 } from '@preact/signals-core';
 import {
   generateFractionalIndexingKeyBetween,
+  useLiveData,
   useService,
 } from '@toeverything/infra';
 import { fileTypeFromBuffer, type FileTypeResult } from 'file-type';
@@ -388,6 +391,12 @@ const FileCellComponent: ForwardRefRenderFunction<
   );
   const fileList = useSignalValue(manager.fileList);
   const isEditing = useSignalValue(manager.isEditing);
+  const serverService = useService(ServerService);
+  const isSelfhosted = useLiveData(
+    serverService.server.config$.selector(
+      config => config.type === ServerDeploymentType.Selfhosted
+    )
+  );
   const workspaceDialogService = useService(WorkspaceDialogService);
   const jumpToPricePlan = useCallback(() => {
     workspaceDialogService.open('setting', {
@@ -417,16 +426,16 @@ const FileCellComponent: ForwardRefRenderFunction<
             variant="primary"
             className={styles.uploadButton}
           >
-            Choose a file
+            选择文件
           </Button>
 
           <div className={styles.fileInfoContainer}>
-            <div className={styles.fileSizeInfo}>
-              The maximum size per file is 100MB
-            </div>
-            <a className={styles.upgradeLink} onClick={jumpToPricePlan}>
-              Upgrade to Pro
-            </a>
+            <div className={styles.fileSizeInfo}>单个文件最大为 100 MB</div>
+            {!isSelfhosted ? (
+              <a className={styles.upgradeLink} onClick={jumpToPricePlan}>
+                升级到 Pro
+              </a>
+            ) : null}
           </div>
         </div>
       );

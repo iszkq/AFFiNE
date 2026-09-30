@@ -1,19 +1,22 @@
 import {
   Button,
+  Checkbox,
   DragHandle,
   IconButton,
+  Input,
   Menu,
   MenuItem,
   Switch,
 } from '@affine/component';
 import { useI18n } from '@affine/i18n';
 import { MoreHorizontalIcon } from '@blocksuite/icons/rc';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import * as styles from './index.css';
 import { byokT } from './metadata';
 import { ModelEditorModal } from './model-editor-modal';
 import {
+  capabilitiesForUseCases,
   type catalogModels,
   type ModelDeclaration,
   modelUseCases,
@@ -21,23 +24,49 @@ import {
 } from './model-utils';
 import type { ByokKey } from './types';
 
+const emptyDiscoveredModels: Array<{
+  modelId: string;
+  displayName?: string | null;
+}> = [];
+
 export const ModelSelector = ({
   customEndpoint,
   catalog,
   models,
   validation,
   onChange,
+  discoveredModels = emptyDiscoveredModels,
 }: {
   customEndpoint: boolean;
   catalog: ReturnType<typeof catalogModels>;
   models: ModelDeclaration[];
   validation?: ByokKey['validation'];
   onChange: (models: ModelDeclaration[]) => void;
+  discoveredModels?: Array<{ modelId: string; displayName?: string | null }>;
 }) => {
   const t = useI18n();
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [selectedDiscoveredIds, setSelectedDiscoveredIds] = useState<string[]>(
+    []
+  );
+  const [discoveredQuery, setDiscoveredQuery] = useState('');
+  useEffect(() => {
+    setSelectedDiscoveredIds([]);
+    setDiscoveredQuery('');
+  }, [discoveredModels]);
+  const availableDiscoveredModels = discoveredModels.filter(
+    model => !models.some(item => item.modelId === model.modelId)
+  );
+  const visibleDiscoveredModels = availableDiscoveredModels.filter(model => {
+    const query = discoveredQuery.trim().toLocaleLowerCase();
+    return (
+      !query ||
+      model.modelId.toLocaleLowerCase().includes(query) ||
+      model.displayName?.toLocaleLowerCase().includes(query)
+    );
+  });
 
   const update = (index: number, model: ModelDeclaration) => {
     onChange(models.map((current, i) => (i === index ? model : current)));
@@ -89,6 +118,64 @@ export const ModelSelector = ({
           {byokT(t, 'action.add-model')}
         </Button>
       </div>
+      {customEndpoint && availableDiscoveredModels.length ? (
+        <div className={styles.catalogChoices}>
+          {availableDiscoveredModels.length > 6 ? (
+            <Input
+              size="large"
+              value={discoveredQuery}
+              onChange={setDiscoveredQuery}
+              placeholder={byokT(t, 'placeholder.search-models')}
+            />
+          ) : null}
+          {visibleDiscoveredModels.map(model => (
+            <label
+              className={styles.catalogChoice}
+              data-selected={selectedDiscoveredIds.includes(model.modelId)}
+              key={model.modelId}
+            >
+              <Checkbox
+                className={styles.modelCheckbox}
+                aria-label={model.displayName ?? model.modelId}
+                checked={selectedDiscoveredIds.includes(model.modelId)}
+                onChange={(_, checked) =>
+                  setSelectedDiscoveredIds(
+                    checked
+                      ? [...selectedDiscoveredIds, model.modelId]
+                      : selectedDiscoveredIds.filter(id => id !== model.modelId)
+                  )
+                }
+              />
+              <span className={styles.catalogModelCopy}>
+                <strong>{model.displayName ?? model.modelId}</strong>
+                {model.displayName ? <small>{model.modelId}</small> : null}
+              </span>
+            </label>
+          ))}
+          <Button
+            variant="secondary"
+            disabled={!selectedDiscoveredIds.length}
+            onClick={() => {
+              const selected = availableDiscoveredModels.filter(model =>
+                selectedDiscoveredIds.includes(model.modelId)
+              );
+              onChange([
+                ...models,
+                ...selected.map(model => ({
+                  modelId: model.modelId,
+                  enabled: true,
+                  capabilities: capabilitiesForUseCases(null, ['chat']),
+                })),
+              ]);
+              setSelectedDiscoveredIds([]);
+            }}
+          >
+            {byokT(t, 'action.add-discovered-models', {
+              count: selectedDiscoveredIds.length,
+            })}
+          </Button>
+        </div>
+      ) : null}
       {models.length ? (
         <ol className={styles.selectedModels}>
           {models.map((model, index) => {

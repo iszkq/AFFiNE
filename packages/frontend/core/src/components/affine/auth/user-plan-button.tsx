@@ -1,5 +1,5 @@
 import { Tooltip } from '@affine/component/ui/tooltip';
-import { SubscriptionPlan } from '@affine/graphql';
+import { ServerDeploymentType, SubscriptionPlan } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import { useLiveData, useService } from '@toeverything/infra';
 import { type SyntheticEvent, useEffect } from 'react';
@@ -18,6 +18,11 @@ export const UserPlanButton = ({
   const hasPayment = useLiveData(
     serverService.server.features$.map(r => r?.payment)
   );
+  const isSelfhosted = useLiveData(
+    serverService.server.config$.selector(
+      config => config.type === ServerDeploymentType.Selfhosted
+    )
+  );
   const plan = useLiveData(
     subscriptionService.subscription.pro$.map(subscription =>
       subscription !== null ? subscription?.plan : null
@@ -33,7 +38,7 @@ export const UserPlanButton = ({
 
   const t = useI18n();
 
-  if (!hasPayment) {
+  if (!hasPayment || isSelfhosted) {
     // no payment feature
     return;
   }

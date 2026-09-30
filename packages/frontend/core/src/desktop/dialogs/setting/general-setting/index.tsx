@@ -2,6 +2,7 @@ import { UserFeatureService } from '@affine/core/modules/cloud/services/user-fea
 import type { SettingTab } from '@affine/core/modules/dialogs/constant';
 import { FeatureFlagService } from '@affine/core/modules/feature-flag';
 import { MeetingSettingsService } from '@affine/core/modules/media/services/meeting-settings';
+import { ServerDeploymentType } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import {
   AppearanceIcon,
@@ -51,6 +52,11 @@ export const useGeneralSettingList = (): GeneralSettingList => {
   const loggedIn = status === 'authenticated';
   const hasPaymentFeature = useLiveData(
     serverService.server.features$.map(f => f?.payment)
+  );
+  const isSelfhosted = useLiveData(
+    serverService.server.config$.selector(
+      config => config.type === ServerDeploymentType.Selfhosted
+    )
   );
   const enableEditorSettings = useLiveData(
     featureFlagService.flags.enable_editor_settings.$
@@ -108,7 +114,7 @@ export const useGeneralSettingList = (): GeneralSettingList => {
       });
     }
 
-    if (hasPaymentFeature) {
+    if (hasPaymentFeature && !isSelfhosted) {
       settings.splice(4, 0, {
         key: 'plans',
         title: t['com.affine.payment.title'](),
@@ -155,6 +161,7 @@ export const useGeneralSettingList = (): GeneralSettingList => {
     enableEditorSettings,
     meetingSettings?.enabled,
     hasPaymentFeature,
+    isSelfhosted,
   ]);
 };
 

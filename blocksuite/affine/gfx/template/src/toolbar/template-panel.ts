@@ -25,6 +25,10 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { createTemplateJob } from '../services/template.js';
 import { builtInTemplates } from './builtin-templates.js';
 import { defaultPreview, Triangle } from './cards.js';
+import {
+  localizeTemplateCategory,
+  templateSearchPlaceholder,
+} from './template-i18n.js';
 import type { Template } from './template-type.js';
 import { cloneDeep } from './utils.js';
 
@@ -393,7 +397,7 @@ export class EdgelessTemplatePanel extends WithDisposable(LitElement) {
           <input
             class="search-input"
             type="text"
-            placeholder="Search file or anything..."
+            placeholder=${templateSearchPlaceholder()}
             @input=${this._updateSearchKeyword}
             @cut=${stopPropagation}
             @copy=${stopPropagation}
@@ -414,7 +418,7 @@ export class EdgelessTemplatePanel extends WithDisposable(LitElement) {
                   this._updateTemplates();
                 }}
               >
-                ${cate}
+                ${localizeTemplateCategory(cate)}
               </div>`;
             }
           )}

@@ -4,14 +4,16 @@
     "type": "selfhosted"
   },
   "server": {
-    "name": "AFFiNE Self-hosted",
+    "name": "AFFiNE 自托管服务器",
     "externalUrl": "http://localhost:3010"
   },
   "copilot": {
     "enabled": true,
     "byok": {
       "enabled": true,
-      "allowCustomEndpoint": true
+      "allowCustomEndpoint": true,
+      "allowPrivateEndpoint": false,
+      "allowedProviders": ["openai", "anthropic", "gemini", "fal"]
     }
   },
   "indexer": {

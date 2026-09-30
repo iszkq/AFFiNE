@@ -761,6 +761,13 @@ input CreateWorkspaceByokProfileInput {
   workspaceId: String!
 }
 
+input DiscoverWorkspaceByokModelsInput {
+  credential: String!
+  endpoint: WorkspaceByokEndpointInput!
+  provider: ByokProvider!
+  workspaceId: String!
+}
+
 type CredentialsRequirementType {
   password: PasswordLimitsType!
 }
@@ -1599,6 +1606,7 @@ type Mutation {
   createWorkspace(init: Upload): WorkspaceType!
   createWorkspaceByokLocalLease(input: CreateWorkspaceByokLocalLeaseInput!): CreateWorkspaceByokLocalLeaseResultType!
   createWorkspaceByokProfile(input: CreateWorkspaceByokProfileInput!): WorkspaceByokProfileType!
+  discoverWorkspaceByokModels(input: DiscoverWorkspaceByokModelsInput!): [WorkspaceByokDiscoveredModelType!]!
   deactivateLicense(workspaceId: String!): Boolean!
   deleteAccount: DeleteAccount!
   deleteAuthSigningKey(id: String!): [AuthSigningKeyType!]!
@@ -2695,6 +2703,11 @@ type WorkspaceByokCatalogProviderType {
 type WorkspaceByokCatalogType {
   providers: [WorkspaceByokCatalogProviderType!]!
   version: String!
+}
+
+type WorkspaceByokDiscoveredModelType {
+  displayName: String
+  modelId: String!
 }
 
 input WorkspaceByokEndpointInput {

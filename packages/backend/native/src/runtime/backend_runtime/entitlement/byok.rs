@@ -90,6 +90,15 @@ impl BackendRuntime {
     let owner_id: String = row
       .get::<Option<String>, _>("user_id")
       .ok_or_else(|| RuntimeError::invalid_input("workspace_owner_not_found"))?;
+    if self.config()?.deployment == Deployment::SelfHosted {
+      tx.commit()
+        .await
+        .map_err(|e| RuntimeError::database("commit self-hosted BYOK entitlement read", e))?;
+      return Ok(RuntimeByokEntitlement {
+        server: true,
+        local: true,
+      });
+    }
     let deployment = self.config()?.deployment;
     let now = load_decision_time(&mut tx, "BYOK entitlement clock").await?;
     let workspace = super::resolve_workspace_entitlement(&mut tx, deployment, &workspace_id, now).await?;

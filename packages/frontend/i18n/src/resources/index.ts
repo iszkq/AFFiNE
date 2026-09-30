@@ -1,4 +1,5 @@
 import en from './en.json' with { type: 'json' };
+import zhHans from './zh-Hans.json' with { type: 'json' };
 
 export type Language =
   | 'en'
@@ -62,7 +63,7 @@ export const SUPPORTED_LANGUAGES: Record<
     name: 'Simplified Chinese',
     originalName: '简体中文',
     flagEmoji: '🇨🇳',
-    resource: () => import('./zh-Hans.json'),
+    resource: zhHans,
   },
   'zh-Hant': {
     name: 'Traditional Chinese',

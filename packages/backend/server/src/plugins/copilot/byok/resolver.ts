@@ -214,6 +214,15 @@ class WorkspaceByokCatalogType {
 }
 
 @ObjectType()
+class WorkspaceByokDiscoveredModelType {
+  @Field(() => String)
+  modelId!: string;
+
+  @Field(() => String, { nullable: true })
+  displayName!: string | null;
+}
+
+@ObjectType()
 class WorkspaceByokPolicyType {
   @Field(() => Boolean)
   enabled!: boolean;
@@ -436,6 +445,21 @@ class ProbeWorkspaceByokDraftInput {
 }
 
 @InputType()
+class DiscoverWorkspaceByokModelsInput {
+  @Field(() => String)
+  workspaceId!: string;
+
+  @Field(() => ByokProvider)
+  provider!: ByokProvider;
+
+  @Field(() => String)
+  credential!: string;
+
+  @Field(() => WorkspaceByokEndpointInput)
+  endpoint!: WorkspaceByokEndpointInput;
+}
+
+@InputType()
 class WorkspaceByokProfileOrderInput {
   @Field(() => ID)
   profileId!: string;
@@ -639,6 +663,32 @@ export class WorkspaceByokResolver {
         definition: nativeDefinition(input.definition),
       })
     );
+  }
+
+  @Mutation(() => [WorkspaceByokDiscoveredModelType])
+  @Throttle('strict')
+  async discoverWorkspaceByokModels(
+    @CurrentUser() user: CurrentUser,
+    @Args('input') input: DiscoverWorkspaceByokModelsInput
+  ) {
+    await this.assertUpdate(user.id, input.workspaceId);
+    await this.entitlement.assertEntitled(input.workspaceId, user.id);
+    if (!input.credential.trim()) {
+      throw new BadRequestException('credential must be provided.');
+    }
+    const models = await this.runtime.discoverByokModels({
+      provider: input.provider,
+      credential: input.credential,
+      endpoint: {
+        ...input.endpoint,
+        url: input.endpoint.url ?? undefined,
+        dialect: input.endpoint.dialect ?? undefined,
+      },
+    });
+    return models.map(model => ({
+      modelId: model.modelId,
+      displayName: model.displayName ?? null,
+    }));
   }
 
   @Mutation(() => Boolean)

@@ -12,14 +12,17 @@ export class ByokEntitlementPolicy {
   }
 
   async hasLocalEntitlement(workspaceId: string, userId?: string) {
+    if (env.selfhosted) return true;
     return (await this.read(workspaceId, userId)).local;
   }
 
   async hasServerEntitlement(workspaceId: string) {
+    if (env.selfhosted) return true;
     return (await this.read(workspaceId)).server;
   }
 
   async hasEntitlement(workspaceId: string, userId?: string) {
+    if (env.selfhosted) return [true, true] as const;
     const result = await this.read(workspaceId, userId);
     return [result.server, result.local] as const;
   }

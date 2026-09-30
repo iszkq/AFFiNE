@@ -1,8 +1,10 @@
 import {
+  ServerService,
   SubscriptionService,
   UserCopilotQuotaService,
 } from '@affine/core/modules/cloud';
 import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
+import { ServerDeploymentType } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import { useLiveData, useService } from '@toeverything/infra';
 import { cssVar } from '@toeverything/theme';
@@ -16,6 +18,12 @@ export const AIUsage = () => {
   const t = useI18n();
   const copilotQuotaService = useService(UserCopilotQuotaService);
   const subscriptionService = useService(SubscriptionService);
+  const serverService = useService(ServerService);
+  const isSelfhosted = useLiveData(
+    serverService.server.config$.selector(
+      config => config.type === ServerDeploymentType.Selfhosted
+    )
+  );
 
   useEffect(() => {
     // revalidate latest subscription status
@@ -49,7 +57,7 @@ export const AIUsage = () => {
     });
   }, [workspaceDialogService]);
 
-  if (loading) {
+  if (isSelfhosted || loading) {
     if (loadError) console.error(loadError);
     return null;
   }

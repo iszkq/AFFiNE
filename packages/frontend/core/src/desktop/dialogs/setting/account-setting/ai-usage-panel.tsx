@@ -5,7 +5,7 @@ import {
   SubscriptionService,
   UserCopilotQuotaService,
 } from '@affine/core/modules/cloud';
-import { SubscriptionPlan } from '@affine/graphql';
+import { ServerDeploymentType, SubscriptionPlan } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import { track } from '@affine/track';
 import { useLiveData, useService } from '@toeverything/infra';
@@ -26,6 +26,12 @@ export const AIUsagePanel = ({
   const hasPaymentFeature = useLiveData(
     serverService.server.features$.map(f => f?.payment)
   );
+  const isSelfhosted = useLiveData(
+    serverService.server.config$.selector(
+      config => config.type === ServerDeploymentType.Selfhosted
+    )
+  );
+  const showPayment = hasPaymentFeature && !isSelfhosted;
   const subscriptionService = useService(SubscriptionService);
   const aiSubscription = useLiveData(subscriptionService.subscription.ai$);
   useEffect(() => {
@@ -61,8 +67,7 @@ export const AIUsagePanel = ({
           desc={''}
           spreadCol={false}
         >
-          {/* TODO(@catsjuice): i18n */}
-          <ErrorMessage>Load error</ErrorMessage>
+          <ErrorMessage>加载失败</ErrorMessage>
         </SettingRow>
       );
     }
@@ -101,13 +106,15 @@ export const AIUsagePanel = ({
       name={t['com.affine.payment.ai.usage-title']()}
     >
       {copilotActionLimit === 'unlimited' ? (
-        hasPaymentFeature && aiSubscription?.canceledAt ? (
-          <AIResume />
-        ) : (
-          <Button onClick={openBilling}>
-            {t['com.affine.payment.ai.usage.change-button-label']()}
-          </Button>
-        )
+        showPayment ? (
+          aiSubscription?.canceledAt ? (
+            <AIResume />
+          ) : (
+            <Button onClick={openBilling}>
+              {t['com.affine.payment.ai.usage.change-button-label']()}
+            </Button>
+          )
+        ) : null
       ) : (
         <div className={styles.storageProgressContainer}>
           <div className={styles.storageProgressWrapper}>
@@ -129,7 +136,7 @@ export const AIUsagePanel = ({
             </div>
           </div>
 
-          {hasPaymentFeature && (
+          {showPayment && (
             <AISubscribe variant="primary">
               {t['com.affine.payment.ai.usage.purchase-button-label']()}
             </AISubscribe>
