@@ -32,6 +32,24 @@ yarn affine server dev
 
 ## Docker 自部署
 
+### 1Panel 快速安装
+
+在 **1Panel 终端**粘贴这一行。脚本会自动检测公网 IP、拉取已发布的中文镜像、生成数据库密码、写入配置并启动服务：
+
+~~~bash
+curl -fsSL https://raw.githubusercontent.com/iszkq/AFFiNE/canary/.docker/selfhost/install-1panel.sh -o /tmp/affine-install.sh && bash /tmp/affine-install.sh
+~~~
+
+完成后打开终端打印的地址。如果无法访问，在 **1Panel → 防火墙** 放行 TCP 3010。脚本不会覆盖已有的 /opt/affine 部署；镜像拉取中断时可再次运行同一命令继续启动。
+
+如果已经有 HTTPS 域名，则把域名传给脚本，再在 1Panel 网站中反向代理到 http://127.0.0.1:3010：
+
+~~~bash
+curl -fsSL https://raw.githubusercontent.com/iszkq/AFFiNE/canary/.docker/selfhost/install-1panel.sh -o /tmp/affine-install.sh && bash /tmp/affine-install.sh https://notes.example.com
+~~~
+
+脚本源码见 [install-1panel.sh](../.docker/selfhost/install-1panel.sh)。下面保留手动部署步骤，供需要自定义配置时使用。
+
 `.docker/selfhost/compose.yml` 默认拉取上游镜像 `ghcr.io/toeverything/affine:stable`，不会包含本仓库的中文化和自定义模型发现改动。部署二次开发版本时，先构建自己的镜像，再设置 `AFFINE_IMAGE`；服务容器和迁移容器必须使用同一镜像版本。
 
 ### 在 GitHub 构建镜像（推荐给 1Panel）

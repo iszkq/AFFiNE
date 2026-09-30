@@ -194,6 +194,14 @@ Use Docker Compose with an image built from this repository to deploy the locali
 
 最方便的方式是在 GitHub 仓库的 **Actions → Build Self-hosted Image → Run workflow** 手动构建。成功后可在 1Panel 中直接拉取 `ghcr.io/iszkq/affine:zh-byok`；生产环境建议使用运行结果中的 `sha-<完整提交 SHA>` 固定标签。首次使用请在 GitHub **Packages** 中将镜像设为 Public，或者给 1Panel 配置 GHCR 凭据。详细步骤见 [`docs/self-hosting-zh.md`](docs/self-hosting-zh.md)。
 
+只想在 1Panel 上安装本仓库已发布的中文镜像，可在 **1Panel 终端**直接粘贴这一行；脚本会自动获取公网 IP、生成数据库密码并启动服务：
+
+~~~bash
+curl -fsSL https://raw.githubusercontent.com/iszkq/AFFiNE/canary/.docker/selfhost/install-1panel.sh -o /tmp/affine-install.sh && bash /tmp/affine-install.sh
+~~~
+
+需要 HTTPS 域名或自定义部署时见 [中文自部署说明](docs/self-hosting-zh.md)。当前已发布镜像已验证可公开拉取。
+
 在仓库根目录执行：
 
 ```bash
