@@ -1,0 +1,54 @@
+name: Export Self-hosted Image Archive
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Existing tag in ghcr.io/iszkq/affine
+        type: string
+        required: true
+        default: sha-9a3c18419901960bfde47a50a0c17f7622eff228
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  export:
+    name: Export Linux ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            arch: amd64
+          - platform: linux/arm64
+            arch: arm64
+          - platform: linux/arm/v7
+            arch: armv7
+    env:
+      IMAGE_TAG: ${{ inputs.image_tag }}
+      TARGET_PLATFORM: ${{ matrix.platform }}
+      ARCH: ${{ matrix.arch }}
+    steps:
+      - name: Pull the already-built image
+        shell: bash
+        run: |
+          [[ "$IMAGE_TAG" =~ ^[a-zA-Z0-9._-]+$ ]] || { echo 'Invalid image tag'; exit 1; }
+          docker pull --platform "$TARGET_PLATFORM" "ghcr.io/iszkq/affine:$IMAGE_TAG"
+
+      - name: Save a Docker-loadable archive
+        shell: bash
+        run: |
+          docker save "ghcr.io/iszkq/affine:$IMAGE_TAG" | gzip -1 > "affine-image-$ARCH.tar.gz"
+          gzip -t "affine-image-$ARCH.tar.gz"
+
+      - name: Upload downloadable image archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: affine-image-${{ matrix.arch }}
+          path: affine-image-${{ matrix.arch }}.tar.gz
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
