@@ -1,4 +1,4 @@
-name: Export Self-hosted Image Archive
+name: Export Self-hosted Offline Bundle
 
 on:
   workflow_dispatch:
@@ -15,40 +15,45 @@ permissions:
 
 jobs:
   export:
-    name: Export Linux ${{ matrix.arch }}
+    name: Export Linux amd64 bundle
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: linux/amd64
-            arch: amd64
-          - platform: linux/arm64
-            arch: arm64
-          - platform: linux/arm/v7
-            arch: armv7
     env:
-      IMAGE_TAG: ${{ inputs.image_tag }}
-      TARGET_PLATFORM: ${{ matrix.platform }}
-      ARCH: ${{ matrix.arch }}
+      AFFINE_IMAGE: ghcr.io/iszkq/affine:${{ inputs.image_tag }}
+      REDIS_IMAGE: redis:latest
+      POSTGRES_IMAGE: pgvector/pgvector:pg16
     steps:
-      - name: Pull the already-built image
+      - name: Validate image tag
         shell: bash
         run: |
-          [[ "$IMAGE_TAG" =~ ^[a-zA-Z0-9._-]+$ ]] || { echo 'Invalid image tag'; exit 1; }
-          docker pull --platform "$TARGET_PLATFORM" "ghcr.io/iszkq/affine:$IMAGE_TAG"
+          [[ "${{ inputs.image_tag }}" =~ ^[a-zA-Z0-9._-]+$ ]] || {
+            echo 'Invalid image tag'
+            exit 1
+          }
 
-      - name: Save a Docker-loadable archive
+      - name: Pull Linux amd64 images
         shell: bash
         run: |
-          docker save "ghcr.io/iszkq/affine:$IMAGE_TAG" | gzip -1 > "affine-image-$ARCH.tar.gz"
-          gzip -t "affine-image-$ARCH.tar.gz"
+          docker pull --platform linux/amd64 "$AFFINE_IMAGE"
+          docker pull --platform linux/amd64 "$REDIS_IMAGE"
+          docker pull --platform linux/amd64 "$POSTGRES_IMAGE"
 
-      - name: Upload downloadable image archive
+      - name: Save all images into one archive
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          docker save "$AFFINE_IMAGE" "$REDIS_IMAGE" "$POSTGRES_IMAGE" \
+            | gzip -1 > affine-offline-amd64.tar.gz
+          gzip -t affine-offline-amd64.tar.gz
+          sha256sum affine-offline-amd64.tar.gz > affine-offline-amd64.tar.gz.sha256
+          ls -lh affine-offline-amd64.tar.gz affine-offline-amd64.tar.gz.sha256
+
+      - name: Upload offline bundle
         uses: actions/upload-artifact@v4
         with:
-          name: affine-image-${{ matrix.arch }}
-          path: affine-image-${{ matrix.arch }}.tar.gz
+          name: affine-offline-amd64
+          path: |
+            affine-offline-amd64.tar.gz
+            affine-offline-amd64.tar.gz.sha256
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
