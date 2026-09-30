@@ -54,7 +54,7 @@ export class AILoading extends WithDisposable(LitElement) {
     return html`
       <div class="generating-tip">
         <div class="left">${AIStarIconWithAnimation}</div>
-        <div class="text">AI is generating...</div>
+        <div class="text">AI 正在生成内容…</div>
       </div>
     `;
   }

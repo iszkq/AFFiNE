@@ -156,7 +156,7 @@ export class ActionWrapper extends WithDisposable(LitElement) {
         this.promptShow
           ? html`
               <div class="answer-prompt" data-testid="answer-prompt">
-                <div class="subtitle">Answer</div>
+                <div class="subtitle">回答</div>
                 ${
                   HISTORY_IMAGE_ACTIONS.includes(item.action)
                     ? images &&

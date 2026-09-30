@@ -256,7 +256,7 @@ async function insertBelowBlock(
 
 export const PAGE_INSERT = {
   icon: InsertBelowIcon({ width: '20px', height: '20px' }),
-  title: 'Insert',
+  title: '插入',
   showWhen: (host: EditorHost) => {
     if (host.std.store.readonly$.value) {
       return false;
@@ -264,7 +264,7 @@ export const PAGE_INSERT = {
 
     return true;
   },
-  toast: 'Successfully inserted',
+  toast: '插入成功',
   handler: async (
     host: EditorHost,
     content: string,
@@ -337,8 +337,8 @@ export const EDGELESS_INSERT = {
 
 const SAVE_AS_BLOCK: ChatAction = {
   icon: BlockIcon({ width: '20px', height: '20px' }),
-  title: 'Save as block',
-  toast: 'Successfully saved chat to a block',
+  title: '保存为卡片',
+  toast: '已成功将聊天保存为卡片',
   showWhen: (host: EditorHost) => {
     if (host.std.store.readonly$.value) {
       return false;
@@ -370,10 +370,9 @@ const SAVE_AS_BLOCK: ChatAction = {
       docModeService.setEditorMode('edgeless' as DocMode);
       // Notify user to switch to edgeless mode
       notificationService?.notify({
-        title: 'Save chat to a block',
+        title: '保存聊天为卡片',
         accent: 'info',
-        message:
-          'This feature is not available in the page editor. Switch to edgeless mode.',
+        message: '页面编辑器暂不支持此功能，请切换到白板模式。',
         onClose: function (): void {},
       });
     }
@@ -428,7 +427,7 @@ const SAVE_AS_BLOCK: ChatAction = {
     } catch (err) {
       console.error(err);
       notificationService?.notify({
-        title: 'Failed to save chat to a block',
+        title: '保存聊天卡片失败',
         accent: 'error',
         onClose: function (): void {},
       });
@@ -441,14 +440,14 @@ const SAVE_AS_BLOCK: ChatAction = {
 
 const ADD_TO_EDGELESS_AS_NOTE = {
   icon: EdgelessIcon({ width: '20px', height: '20px' }),
-  title: 'Add to edgeless as note',
+  title: '添加到白板便签',
   showWhen: (host: EditorHost) => {
     if (host.std.store.readonly$.value) {
       return false;
     }
     return true;
   },
-  toast: 'New note created',
+  toast: '已创建新便签',
   handler: async (host: EditorHost, content: string): Promise<boolean> => {
     reportResponse('result:add-note', host);
     const { store } = host;
@@ -482,9 +481,9 @@ const ADD_TO_EDGELESS_AS_NOTE = {
 
 export const SAVE_AS_DOC = {
   icon: PageIcon({ width: '20px', height: '20px' }),
-  title: 'Save as doc',
+  title: '保存为文档',
   showWhen: () => true,
-  toast: 'New doc created',
+  toast: '已创建新文档',
   handler: (host: EditorHost, content: string) => {
     reportResponse('result:add-page', host);
     const doc = host.store.workspace.createDoc();

@@ -7,7 +7,7 @@ on:
         description: Existing tag in ghcr.io/iszkq/affine
         type: string
         required: true
-        default: sha-9a3c18419901960bfde47a50a0c17f7622eff228
+        default: zh-byok
 
 permissions:
   contents: read

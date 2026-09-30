@@ -257,6 +257,9 @@ export class TableBlockComponent extends CaptionedBlockComponent<TableBlockModel
                               .row=${row}
                               .column=${column}
                               .text=${cell?.text}
+                              .mergedInto=${cell?.mergedInto}
+                              .rowSpan=${cell?.rowSpan ?? 1}
+                              .colSpan=${cell?.colSpan ?? 1}
                               .dataManager=${this.dataManager}
                               .selectionController=${this.selectionController}
                             ></affine-table-cell>

@@ -286,6 +286,72 @@ export class TableDataManager {
     this.clearCells(deleteCells);
   }
 
+  mergeCells(selection: TableAreaSelection) {
+    const rows = this.rows$.value.slice(
+      selection.rowStartIndex,
+      selection.rowEndIndex + 1
+    );
+    const columns = this.columns$.value.slice(
+      selection.columnStartIndex,
+      selection.columnEndIndex + 1
+    );
+    if (
+      rows.length < 1 ||
+      columns.length < 1 ||
+      (rows.length === 1 && columns.length === 1)
+    )
+      return;
+    const firstRow = rows[0];
+    const firstColumn = columns[0];
+    if (!firstRow || !firstColumn) return;
+    const anchorId = `${firstRow.rowId}:${firstColumn.columnId}`;
+    const anchor = this.model.props.cells[anchorId];
+    if (!anchor) return;
+    const texts = rows
+      .flatMap(row =>
+        columns.map(
+          column =>
+            this.model.props.cells[
+              `${row.rowId}:${column.columnId}`
+            ]?.text.toString() ?? ''
+        )
+      )
+      .filter(Boolean);
+    this.model.store.transact(() => {
+      anchor.text.delete(0, anchor.text.length);
+      anchor.text.insert(texts.join('\n'), 0);
+      anchor.rowSpan = rows.length;
+      anchor.colSpan = columns.length;
+      for (const row of rows) {
+        for (const column of columns) {
+          const key = `${row.rowId}:${column.columnId}`;
+          if (key !== anchorId && this.model.props.cells[key]) {
+            this.model.props.cells[key].mergedInto = anchorId;
+          }
+        }
+      }
+    });
+  }
+
+  splitCell(rowId: string, columnId: string) {
+    const key = `${rowId}:${columnId}`;
+    const cell = this.model.props.cells[key];
+    const anchorId = cell?.mergedInto ?? key;
+    const anchor = this.model.props.cells[anchorId];
+    if (!anchor || (!anchor.rowSpan && !anchor.colSpan)) return;
+    const [anchorRowId, anchorColumnId] = anchorId.split(':');
+    this.model.store.transact(() => {
+      for (const item of Object.values(this.model.props.cells)) {
+        if (item.mergedInto === anchorId) delete item.mergedInto;
+      }
+      delete anchor.rowSpan;
+      delete anchor.colSpan;
+      if (anchorRowId && anchorColumnId && anchorId !== key) {
+        delete cell?.mergedInto;
+      }
+    });
+  }
+
   clearCells(cells: { rowId: string; columnId: string }[]) {
     this.model.store.transact(() => {
       cells.forEach(({ rowId, columnId }) => {

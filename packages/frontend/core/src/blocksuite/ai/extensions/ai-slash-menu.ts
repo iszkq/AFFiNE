@@ -12,7 +12,10 @@ import { html } from 'lit';
 
 import { pageAIGroups } from '../_common/config';
 import { handleInlineAskAIAction } from '../actions/doc-handler';
-import type { AIItemConfig } from '../components/ai-item/types';
+import {
+  type AIItemConfig,
+  translateAIName,
+} from '../components/ai-item/types';
 import {
   AFFINE_AI_PANEL_WIDGET,
   type AffineAIPanelWidget,
@@ -57,7 +60,7 @@ export function AiSlashMenuConfigExtension() {
       ...basicItemConfig(item),
       subMenu: (item.subItem ?? []).map<SlashMenuActionItem>(
         ({ type, handler }) => ({
-          name: type,
+          name: translateAIName(type),
           action: ({ std }) => handler?.(std.host),
         })
       ),
@@ -66,7 +69,7 @@ export function AiSlashMenuConfigExtension() {
 
   const basicItemConfig = (item: AIItemConfig) => {
     return {
-      name: item.name,
+      name: translateAIName(item.name),
       icon: iconWrapper(item.icon),
       searchAlias: ['ai'],
       when: showWhenWrapper(item),
@@ -76,7 +79,7 @@ export function AiSlashMenuConfigExtension() {
   let index = 0;
   const AIMenuItems: SlashMenuItem[] = [
     {
-      name: 'Ask AI',
+      name: '询问 AI',
       icon: AIStarIcon,
       when: showWhenWrapper(),
       action: ({ std }) => {
@@ -105,7 +108,7 @@ export function AiSlashMenuConfigExtension() {
     })),
 
     {
-      name: 'Action with above',
+      name: '对上文执行操作',
       icon: iconWrapper(MoreHorizontalIcon({ width: '24px', height: '24px' })),
       group: `1_AFFiNE AI@${index++}`,
       subMenu: [

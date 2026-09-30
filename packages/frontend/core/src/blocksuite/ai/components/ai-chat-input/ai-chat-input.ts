@@ -615,7 +615,7 @@ export class AIChatInput extends SignalWatcher(
       }
       <textarea
         rows="1"
-        placeholder="What are your thoughts?"
+        placeholder="请输入你的想法"
         @input=${this._handleInput}
         @keydown=${this._handleKeyDown}
         @focus=${() => {

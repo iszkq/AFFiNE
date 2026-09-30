@@ -82,7 +82,7 @@ export function discard(
   _: EdgelessCopilotWidget
 ): AIItemConfig {
   return {
-    name: 'Discard',
+    name: '丢弃',
     icon: DeleteIcon(),
     testId: 'answer-discard',
     showWhen: () => !!panel.answer,
@@ -117,7 +117,7 @@ export function createInsertItems<T extends keyof BlockSuitePresets.AIActions>(
   >
 ): AIItemConfig[] {
   const extraCondition = extraConditions[id] || ((_: any) => true);
-  const buttonText = getButtonText[id]?.(variants) ?? 'Insert below';
+  const buttonText = getButtonText[id]?.(variants) ?? '插入到下方';
   return [
     {
       name: `${buttonText} - Loading...`,
@@ -581,11 +581,11 @@ export function actionToResponse<T extends keyof BlockSuitePresets.AIActions>(
   return {
     responses: [
       {
-        name: 'Response',
+        name: '响应',
         testId: 'answer-responses',
         items: [
           {
-            name: 'Continue in chat',
+            name: '在聊天中继续',
             testId: 'answer-continue-in-chat',
             icon: ChatWithAiIcon({}),
             handler: () => {

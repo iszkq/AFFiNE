@@ -655,7 +655,7 @@
   "com.affine.issue-feedback.confirm": "在 GitHUb 分享反馈",
   "com.affine.issue-feedback.description": "有任何反馈？ 我们都洗耳恭听！ 在 GitHub 分享反馈，让我们了解您的想法和建议。",
   "com.affine.issue-feedback.title": "在 GitHub 分享您的反馈",
-  "com.affine.journal.app-sidebar-title": "Journals",
+  "com.affine.journal.app-sidebar-title": "日记",
   "com.affine.journal.conflict-show-more": "还有 {{count}} 篇文章",
   "com.affine.journal.created-today": "创建",
   "com.affine.journal.daily-count-created-empty-tips": "你还没有创建任何东西",

@@ -10,6 +10,9 @@ import type { BlockMeta } from '../../utils/types';
 
 export type TableCell = {
   text: Text;
+  mergedInto?: string;
+  rowSpan?: number;
+  colSpan?: number;
 };
 
 export interface TableRow {

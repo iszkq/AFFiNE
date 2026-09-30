@@ -158,7 +158,7 @@ export class SectionEditTool extends WithDisposable(ShadowlessElement) {
           <div class="section-edit-header">
             <div class="section-edit-title">
               ${PageIcon()}
-              <span>Edited Content</span>
+              <span>编辑后的内容</span>
             </div>
             <div class="section-edit-actions">
               <div
@@ -166,12 +166,12 @@ export class SectionEditTool extends WithDisposable(ShadowlessElement) {
                 @click=${async () => {
                   const success = await copyText(result.content);
                   if (success) {
-                    this.notifySuccess('Copied to clipboard');
+                    this.notifySuccess('已复制到剪贴板');
                   }
                 }}
               >
                 ${CopyIcon()}
-                <affine-tooltip>Copy</affine-tooltip>
+                <affine-tooltip>复制</affine-tooltip>
               </div>
               ${
                 this.independentMode
@@ -182,7 +182,7 @@ export class SectionEditTool extends WithDisposable(ShadowlessElement) {
                         if (!this.host) return;
                         if (this.host.std.store.readonly$.value) {
                           this.notificationService.notify({
-                            title: 'Cannot insert in read-only mode',
+                            title: '只读模式下无法插入',
                             accent: 'error',
                             onClose: () => {},
                           });
@@ -204,7 +204,7 @@ export class SectionEditTool extends WithDisposable(ShadowlessElement) {
                       }}
                     >
                       ${InsertBleowIcon()}
-                      <affine-tooltip>Insert below</affine-tooltip>
+                      <affine-tooltip>插入到下方</affine-tooltip>
                     </div>`
               }
               ${

@@ -10,7 +10,7 @@ import { css, html, LitElement, nothing } from 'lit';
 import { property, query } from 'lit/decorators.js';
 
 import { menuItemStyles } from './styles';
-import type { AIItemConfig } from './types';
+import { type AIItemConfig, translateAIName } from './types';
 
 @requiredProperties({
   host: PropTypes.instanceOf(EditorHost),
@@ -40,8 +40,8 @@ export class AIItem extends WithDisposable(LitElement) {
     >
       <span class="item-icon">${item.icon}</span>
       <div class="item-name">
-        ${item.name}${
-          item.beta ? html`<div class="item-beta">(Beta)</div>` : nothing
+        ${translateAIName(item.name)}${
+          item.beta ? html`<div class="item-beta">（测试版）</div>` : nothing
         }
       </div>
       ${

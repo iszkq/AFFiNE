@@ -126,7 +126,7 @@ export class ChatActionList extends LitElement {
               class="action"
               @click=${async () => {
                 if (
-                  action.title === 'Insert below' &&
+                  action.title === '插入到下方' &&
                   this._selectionValue.length === 1 &&
                   this._selectionValue[0].type === 'database'
                 ) {

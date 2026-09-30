@@ -66,6 +66,15 @@ export class TableCell extends SignalWatcher(
   @property({ attribute: false })
   accessor text: Text | undefined = undefined;
 
+  @property({ attribute: false })
+  accessor mergedInto: string | undefined = undefined;
+
+  @property({ type: Number })
+  accessor rowSpan = 1;
+
+  @property({ type: Number })
+  accessor colSpan = 1;
+
   get readonly() {
     return this.dataManager.readonly$.value;
   }
@@ -129,37 +138,35 @@ export class TableCell extends SignalWatcher(
           menu.group({
             items: [
               menu.subMenu({
-                name: 'Background color',
+                name: '背景颜色',
                 prefix: ColorPickerIcon(),
                 options: {
-                  items: [
-                    { name: 'Default', color: undefined },
-                    ...colorList,
-                  ].map(item =>
-                    menu.action({
-                      prefix: html`<div
-                        style="color: ${
-                          item.color ?? cssVarV2.layer.background.primary
-                        };display: flex;align-items: center;justify-content: center;"
-                      >
-                        ${TextBackgroundDuotoneIcon}
-                      </div>`,
-                      name: item.name,
-                      isSelected: column.backgroundColor === item.color,
-                      select: () => {
-                        this.dataManager.setColumnBackgroundColor(
-                          column.columnId,
-                          item.color
-                        );
-                      },
-                    })
+                  items: [{ name: '默认', color: undefined }, ...colorList].map(
+                    item =>
+                      menu.action({
+                        prefix: html`<div
+                          style="color: ${
+                            item.color ?? cssVarV2.layer.background.primary
+                          };display: flex;align-items: center;justify-content: center;"
+                        >
+                          ${TextBackgroundDuotoneIcon}
+                        </div>`,
+                        name: item.name,
+                        isSelected: column.backgroundColor === item.color,
+                        select: () => {
+                          this.dataManager.setColumnBackgroundColor(
+                            column.columnId,
+                            item.color
+                          );
+                        },
+                      })
                   ),
                 },
               }),
               ...(column.backgroundColor
                 ? [
                     menu.action({
-                      name: 'Clear column style',
+                      name: '清除列样式',
                       prefix: CloseIcon(),
                       select: () => {
                         this.dataManager.setColumnBackgroundColor(
@@ -175,7 +182,7 @@ export class TableCell extends SignalWatcher(
           menu.group({
             items: [
               menu.action({
-                name: 'Insert Left',
+                name: '向左插入列',
                 prefix: InsertLeftIcon(),
                 select: () => {
                   this.dataManager.insertColumn(
@@ -184,21 +191,21 @@ export class TableCell extends SignalWatcher(
                 },
               }),
               menu.action({
-                name: 'Insert Right',
+                name: '向右插入列',
                 prefix: InsertRightIcon(),
                 select: () => {
                   this.dataManager.insertColumn(columnIndex);
                 },
               }),
               menu.action({
-                name: 'Move Left',
+                name: '向左移动',
                 prefix: ArrowLeftBigIcon(),
                 select: () => {
                   this.dataManager.moveColumn(columnIndex, columnIndex - 2);
                 },
               }),
               menu.action({
-                name: 'Move Right',
+                name: '向右移动',
                 prefix: ArrowRightBigIcon(),
                 select: () => {
                   this.dataManager.moveColumn(columnIndex, columnIndex + 1);
@@ -209,7 +216,7 @@ export class TableCell extends SignalWatcher(
           menu.group({
             items: [
               menu.action({
-                name: 'Duplicate',
+                name: '复制',
                 prefix: DuplicateIcon(),
                 select: () => {
                   this.dataManager.duplicateColumn(columnIndex);
@@ -217,7 +224,7 @@ export class TableCell extends SignalWatcher(
               }),
 
               menu.action({
-                name: 'Clear column contents',
+                name: '清除列内容',
                 prefix: CloseIcon(),
                 select: () => {
                   this.dataManager.clearColumn(column.columnId);
@@ -225,7 +232,7 @@ export class TableCell extends SignalWatcher(
               }),
 
               menu.action({
-                name: 'Delete',
+                name: '删除',
                 class: {
                   'delete-item': true,
                 },
@@ -255,37 +262,35 @@ export class TableCell extends SignalWatcher(
           menu.group({
             items: [
               menu.subMenu({
-                name: 'Background color',
+                name: '背景颜色',
                 prefix: ColorPickerIcon(),
                 options: {
-                  items: [
-                    { name: 'Default', color: undefined },
-                    ...colorList,
-                  ].map(item =>
-                    menu.action({
-                      prefix: html`<div
-                        style="color: ${
-                          item.color ?? cssVarV2.layer.background.primary
-                        };display: flex;align-items: center;justify-content: center;"
-                      >
-                        ${TextBackgroundDuotoneIcon}
-                      </div>`,
-                      name: item.name,
-                      isSelected: row.backgroundColor === item.color,
-                      select: () => {
-                        this.dataManager.setRowBackgroundColor(
-                          row.rowId,
-                          item.color
-                        );
-                      },
-                    })
+                  items: [{ name: '默认', color: undefined }, ...colorList].map(
+                    item =>
+                      menu.action({
+                        prefix: html`<div
+                          style="color: ${
+                            item.color ?? cssVarV2.layer.background.primary
+                          };display: flex;align-items: center;justify-content: center;"
+                        >
+                          ${TextBackgroundDuotoneIcon}
+                        </div>`,
+                        name: item.name,
+                        isSelected: row.backgroundColor === item.color,
+                        select: () => {
+                          this.dataManager.setRowBackgroundColor(
+                            row.rowId,
+                            item.color
+                          );
+                        },
+                      })
                   ),
                 },
               }),
               ...(row.backgroundColor
                 ? [
                     menu.action({
-                      name: 'Clear row style',
+                      name: '清除行样式',
                       prefix: CloseIcon(),
                       select: () => {
                         this.dataManager.setRowBackgroundColor(
@@ -301,7 +306,7 @@ export class TableCell extends SignalWatcher(
           menu.group({
             items: [
               menu.action({
-                name: 'Insert Above',
+                name: '向上插入行',
                 prefix: InsertAboveIcon(),
                 select: () => {
                   this.dataManager.insertRow(
@@ -310,21 +315,21 @@ export class TableCell extends SignalWatcher(
                 },
               }),
               menu.action({
-                name: 'Insert Below',
+                name: '向下插入行',
                 prefix: InsertBelowIcon(),
                 select: () => {
                   this.dataManager.insertRow(rowIndex);
                 },
               }),
               menu.action({
-                name: 'Move Up',
+                name: '向上移动',
                 prefix: ArrowUpBigIcon(),
                 select: () => {
                   this.dataManager.moveRow(rowIndex, rowIndex - 1);
                 },
               }),
               menu.action({
-                name: 'Move Down',
+                name: '向下移动',
                 prefix: ArrowDownBigIcon(),
                 select: () => {
                   this.dataManager.moveRow(rowIndex, rowIndex + 1);
@@ -335,21 +340,21 @@ export class TableCell extends SignalWatcher(
           menu.group({
             items: [
               menu.action({
-                name: 'Duplicate',
+                name: '复制',
                 prefix: DuplicateIcon(),
                 select: () => {
                   this.dataManager.duplicateRow(rowIndex);
                 },
               }),
               menu.action({
-                name: 'Clear row contents',
+                name: '清除行内容',
                 prefix: CloseIcon(),
                 select: () => {
                   this.dataManager.clearRow(row.rowId);
                 },
               }),
               menu.action({
-                name: 'Delete',
+                name: '删除',
                 class: {
                   'delete-item': true,
                 },
@@ -370,10 +375,10 @@ export class TableCell extends SignalWatcher(
     select: (color?: string) => void
   ) {
     return menu.subMenu({
-      name: 'Background color',
+      name: '背景颜色',
       prefix: ColorPickerIcon(),
       options: {
-        items: [{ name: 'Default', color: undefined }, ...colorList].map(item =>
+        items: [{ name: '默认', color: undefined }, ...colorList].map(item =>
           menu.action({
             prefix: html`<div
               style="color: ${
@@ -408,14 +413,64 @@ export class TableCell extends SignalWatcher(
             menu.group({
               items: [
                 menu.action({
-                  name: 'Copy',
+                  name: '合并单元格',
+                  select: () => {
+                    this.dataManager.mergeCells(selected);
+                  },
+                }),
+                menu.action({
+                  name: '拆分单元格',
+                  select: () => {
+                    const rows = this.dataManager.uiRows$.value;
+                    const columns = this.dataManager.uiColumns$.value;
+                    const row = rows[selected.rowStartIndex];
+                    const column = columns[selected.columnStartIndex];
+                    if (row && column)
+                      this.dataManager.splitCell(row.rowId, column.columnId);
+                  },
+                }),
+                menu.subMenu({
+                  name: '文字大小',
+                  options: {
+                    items: [12, 14, 16, 18, 22].map(size =>
+                      menu.action({
+                        name: `${size}px`,
+                        select: () => {
+                          const rows = this.dataManager.uiRows$.value.slice(
+                            selected.rowStartIndex,
+                            selected.rowEndIndex + 1
+                          );
+                          const columns =
+                            this.dataManager.uiColumns$.value.slice(
+                              selected.columnStartIndex,
+                              selected.columnEndIndex + 1
+                            );
+                          rows.forEach(row =>
+                            columns.forEach(column => {
+                              const text = this.dataManager.getCell(
+                                row.rowId,
+                                column.columnId
+                              )?.text;
+                              if (text?.length)
+                                text.format(0, text.length, {
+                                  fontSize: `${size}px`,
+                                });
+                            })
+                          );
+                        },
+                      })
+                    ),
+                  },
+                }),
+                menu.action({
+                  name: '复制',
                   prefix: CopyIcon(),
                   select: () => {
                     this.selectionController.doCopyOrCut(selected, false);
                   },
                 }),
                 menu.action({
-                  name: 'Paste',
+                  name: '粘贴',
                   prefix: PasteIcon(),
                   select: () => {
                     // oxlint-disable-next-line typescript/no-floating-promises
@@ -429,7 +484,7 @@ export class TableCell extends SignalWatcher(
             menu.group({
               items: [
                 menu.action({
-                  name: 'Clear contents',
+                  name: '清除内容',
                   prefix: CloseIcon(),
                   select: () => {
                     this.dataManager.clearCellsBySelection(selected);
@@ -727,8 +782,20 @@ export class TableCell extends SignalWatcher(
   }
 
   override render() {
+    if (this.mergedInto) {
+      return html`<td
+        data-row-id=${this.row?.rowId}
+        data-column-id=${this.column?.columnId}
+        style="display: none"
+      ></td>`;
+    }
     if (!this.text) {
-      return html`<td class=${cellContainerStyle} style=${this.tdStyle()}>
+      return html`<td
+        colspan=${this.colSpan}
+        rowspan=${this.rowSpan}
+        class=${cellContainerStyle}
+        style=${this.tdStyle()}
+      >
         <div
           style=${styleMap({
             padding: '8px 12px',
@@ -740,6 +807,8 @@ export class TableCell extends SignalWatcher(
     }
     return html`
       <td
+        colspan=${this.colSpan}
+        rowspan=${this.rowSpan}
         data-row-id=${this.row?.rowId}
         data-column-id=${this.column?.columnId}
         @mouseenter=${() => {

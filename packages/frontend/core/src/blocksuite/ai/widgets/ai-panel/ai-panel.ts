@@ -300,10 +300,10 @@ export class AffineAIPanelWidget extends WidgetComponent {
     this._discardModalAbort = new AbortController();
     return notification
       .confirm({
-        title: 'Stop generating',
-        message: 'AI is generating content. Do you want to stop generating?',
-        cancelText: 'Cancel',
-        confirmText: 'Stop',
+        title: '停止生成',
+        message: 'AI 正在生成内容，确定要停止吗？',
+        cancelText: '取消',
+        confirmText: '停止',
         abort: this._abortController.signal,
       })
       .finally(() => (this._discardModalAbort = null));
@@ -318,10 +318,10 @@ export class AffineAIPanelWidget extends WidgetComponent {
     this._discardModalAbort = new AbortController();
     return notification
       .confirm({
-        title: 'Discard the AI result',
-        message: 'Do you want to discard the results the AI just generated?',
-        cancelText: 'Cancel',
-        confirmText: 'Discard',
+        title: '丢弃 AI 结果',
+        message: '确定要丢弃刚刚生成的内容吗？',
+        cancelText: '取消',
+        confirmText: '丢弃',
         abort: this._abortController.signal,
       })
       .finally(() => (this._discardModalAbort = null));

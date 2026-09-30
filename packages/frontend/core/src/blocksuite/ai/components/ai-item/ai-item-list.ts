@@ -14,7 +14,11 @@ import { repeat } from 'lit/directives/repeat.js';
 
 import type { AIItem } from './ai-item';
 import { SUBMENU_OFFSET_CROSS_AXIS, SUBMENU_OFFSET_MAIN_AXIS } from './const';
-import type { AIItemConfig, AIItemGroupConfig } from './types';
+import {
+  type AIItemConfig,
+  type AIItemGroupConfig,
+  translateAIName,
+} from './types';
 
 @requiredProperties({ host: PropTypes.instanceOf(EditorHost) })
 export class AIItemList extends WithDisposable(LitElement) {
@@ -118,7 +122,7 @@ export class AIItemList extends WithDisposable(LitElement) {
         ${
           group.name
             ? html`<div class="group-name">
-                ${group.name.toLocaleUpperCase()}
+                ${translateAIName(group.name).toLocaleUpperCase()}
               </div>`
             : nothing
         }

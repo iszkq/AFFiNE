@@ -10,6 +10,7 @@ import {
   textConversionConfigs,
 } from '@blocksuite/affine-rich-text';
 import {
+  focusBlockEnd,
   getSelectedModelsCommand,
   getTextSelectionCommand,
 } from '@blocksuite/affine-shared/commands';
@@ -22,13 +23,60 @@ import {
 } from '@blocksuite/affine-widget-slash-menu';
 import { HeadingsIcon } from '@blocksuite/icons/lit';
 import { BlockSelection } from '@blocksuite/std';
+import { Text } from '@blocksuite/store';
 
+import { openBiblePicker } from '../bible-picker';
 import { updateBlockAlign, updateBlockType } from '../commands';
 import { tooltips } from './tooltips';
 
 let basicIndex = 0;
 const noteSlashMenuConfig: SlashMenuConfig = {
   items: [
+    {
+      name: '圣经经文',
+      description: '按卷章或关键词搜索经文并插入文档。',
+      searchAlias: ['bible', '经文', '圣经'],
+      group: '4_Content & Media@0',
+      action: ({ std, model }) => openBiblePicker(std, model),
+    },
+    {
+      name: '卡片',
+      description: '插入带标题、正文和颜色的卡片。',
+      searchAlias: ['card', 'callout'],
+      group: '4_Content & Media@1',
+      action: ({ std, model }) => {
+        const parent = std.store.getParent(model);
+        if (!parent) return;
+        const index = parent.children.indexOf(model);
+        const cardId = std.store.addBlock(
+          'affine:callout',
+          { backgroundColorName: 'blue' },
+          parent,
+          index + 1
+        );
+        if (!cardId) return;
+        const titleId = std.store.addBlock(
+          'affine:paragraph',
+          { type: 'h3', text: new Text('卡片标题') },
+          cardId
+        );
+        const bodyId = std.store.addBlock(
+          'affine:paragraph',
+          { text: new Text('在这里输入卡片正文') },
+          cardId
+        );
+        const focusId = bodyId || titleId;
+        if (focusId) {
+          std.host.updateComplete
+            .then(() => {
+              const paragraph = std.view.getBlock(focusId);
+              if (paragraph)
+                std.command.exec(focusBlockEnd, { focusBlock: paragraph });
+            })
+            .catch(console.error);
+        }
+      },
+    },
     ...textConversionConfigs
       .filter(i => i.type && ['h1', 'h2', 'h3', 'text'].includes(i.type))
       .map(config => createConversionItem(config, `0_Basic@${basicIndex++}`)),

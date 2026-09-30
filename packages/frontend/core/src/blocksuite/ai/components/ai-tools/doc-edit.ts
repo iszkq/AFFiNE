@@ -268,7 +268,7 @@ export class DocEditTool extends WithDisposable(ShadowlessElement) {
     const success = await copyText(removeMarkdownComments(changedMarkdown));
     if (success) {
       this.notificationService.notify({
-        title: 'Copied to clipboard',
+        title: '已复制到剪贴板',
         accent: 'success',
         onClose: function (): void {},
       });
@@ -278,7 +278,7 @@ export class DocEditTool extends WithDisposable(ShadowlessElement) {
   renderToolCall() {
     return html`
       <tool-call-card
-        .name=${'Editing the document'}
+        .name=${'正在编辑文档'}
         .icon=${EditIcon()}
       ></tool-call-card>
     `;

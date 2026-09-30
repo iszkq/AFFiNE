@@ -220,7 +220,7 @@ export class AIPanelInput extends SignalWatcher(WithDisposable(LitElement)) {
       <div class="star">${AIStarIcon}</div>
       <div class="textarea-container">
         <textarea
-          placeholder="What are your thoughts?"
+          placeholder="请输入你的想法"
           rows="1"
           @keydown=${this._onKeyDown}
           @input=${this._onInput}
@@ -241,7 +241,7 @@ export class AIPanelInput extends SignalWatcher(WithDisposable(LitElement)) {
           ${SendIcon()}
           ${
             this._hasContent
-              ? html`<affine-tooltip .offsetY=${12}>Send to AI</affine-tooltip>`
+              ? html`<affine-tooltip .offsetY=${12}>发送给 AI</affine-tooltip>`
               : nothing
           }
         </div>

@@ -2,8 +2,8 @@
 set -Eeuo pipefail
 
 # The image and deployment templates belong to the same source revision.
-readonly source_ref=9a3c18419901960bfde47a50a0c17f7622eff228
-readonly image=ghcr.io/iszkq/affine:sha-9a3c18419901960bfde47a50a0c17f7622eff228
+readonly source_ref=canary
+readonly image=ghcr.io/iszkq/affine:zh-byok
 readonly install_dir=${AFFINE_INSTALL_DIR:-/opt/affine}
 readonly source_base=https://raw.githubusercontent.com/iszkq/AFFiNE/${source_ref}/.docker/selfhost
 

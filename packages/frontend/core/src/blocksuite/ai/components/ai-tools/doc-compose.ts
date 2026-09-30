@@ -170,10 +170,10 @@ export class DocComposeTool extends ArtifactTool<
         });
         if (docId) {
           const open = await this.notificationService.confirm({
-            title: 'Open the doc you just created',
-            message: 'Doc saved successfully! Would you like to open it now?',
-            cancelText: 'Cancel',
-            confirmText: 'Open',
+            title: '打开刚创建的文档',
+            message: '文档已保存，是否现在打开？',
+            cancelText: '取消',
+            confirmText: '打开',
           });
           if (open) {
             refNodeSlots?.docLinkClicked.next({
@@ -183,11 +183,11 @@ export class DocComposeTool extends ArtifactTool<
             });
           }
         } else {
-          this.notificationService.toast('Failed to create document');
+          this.notificationService.toast('创建文档失败');
         }
       } catch (e) {
         console.error(e);
-        this.notificationService.toast('Failed to create document');
+        this.notificationService.toast('创建文档失败');
       }
     };
 
@@ -200,9 +200,9 @@ export class DocComposeTool extends ArtifactTool<
               height: '20',
               style: `color: ${unsafeCSSVarV2('icon/primary')}`,
             })}
-            Save as doc
+            保存为文档
           </button>
-          <icon-button @click=${copyMarkdown} title="Copy markdown">
+          <icon-button @click=${copyMarkdown} title="复制 Markdown">
             ${CopyIcon({ width: '20', height: '20' })}
           </icon-button>
         `;

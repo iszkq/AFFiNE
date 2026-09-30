@@ -185,13 +185,13 @@ export class ChatCopyMore extends WithDisposable(LitElement) {
                 @click=${async () => {
                   const success = await copyText(content);
                   if (success) {
-                    this._notifySuccess('Copied to clipboard');
+                    this._notifySuccess('已复制到剪贴板');
                   }
                 }}
                 data-testid="action-copy-button"
               >
                 ${CopyIcon({ width: '20px', height: '20px' })}
-                <affine-tooltip>Copy</affine-tooltip>
+                <affine-tooltip>复制</affine-tooltip>
               </div>`
             : nothing
         }
@@ -203,7 +203,7 @@ export class ChatCopyMore extends WithDisposable(LitElement) {
                 data-testid="action-retry-button"
               >
                 ${ResetIcon({ width: '20px', height: '20px' })}
-                <affine-tooltip .autoShift=${true}>Retry</affine-tooltip>
+                <affine-tooltip .autoShift=${true}>重试</affine-tooltip>
               </div>`
             : nothing
         }

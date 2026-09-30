@@ -12,7 +12,11 @@ import { property } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 
 import { menuItemStyles } from './styles';
-import type { AIItemConfig, AISubItemConfig } from './types';
+import {
+  type AIItemConfig,
+  type AISubItemConfig,
+  translateAIName,
+} from './types';
 
 @requiredProperties({
   host: PropTypes.instanceOf(EditorHost),
@@ -74,7 +78,7 @@ export class AISubItemList extends WithDisposable(LitElement) {
             class="menu-item"
             @click=${() => this._handleClick(subItem)}
           >
-            <div class="item-name">${subItem.type}</div>
+            <div class="item-name">${translateAIName(subItem.type)}</div>
             <span class="enter-icon">${EnterIcon}</span>
           </div>`
       )}

@@ -33,6 +33,7 @@ function inlineTextStyles(
     'font-weight': props.bold ? 'bold' : 'inherit',
     'font-style': props.italic ? 'italic' : 'inherit',
     'text-decoration': textDecorations.length > 0 ? textDecorations : 'inherit',
+    'font-size': props.fontSize ?? 'inherit',
     ...inlineCodeStyle,
   });
 }

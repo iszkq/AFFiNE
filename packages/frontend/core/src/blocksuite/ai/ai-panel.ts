@@ -147,11 +147,11 @@ function buildPageResponseConfig<T extends keyof BlockSuitePresets.AIActions>(
 
   return [
     {
-      name: 'Response',
+      name: '响应',
       testId: 'answer-responses',
       items: [
         {
-          name: 'Insert below',
+          name: '插入到下方',
           testId: 'answer-insert-below',
           icon: InsertBelowIcon(),
           showWhen: () =>
@@ -163,7 +163,7 @@ function buildPageResponseConfig<T extends keyof BlockSuitePresets.AIActions>(
           },
         },
         {
-          name: 'Insert above',
+          name: '插入到上方',
           testId: 'answer-insert-above',
           icon: InsertTopIcon(),
           showWhen: () =>
@@ -176,7 +176,7 @@ function buildPageResponseConfig<T extends keyof BlockSuitePresets.AIActions>(
         },
         asCaption(host, id),
         {
-          name: 'Replace selection',
+          name: '替换选中内容',
           testId: 'answer-replace',
           icon: ReplaceIcon(),
           showWhen: () =>
@@ -195,7 +195,7 @@ function buildPageResponseConfig<T extends keyof BlockSuitePresets.AIActions>(
       testId: 'answer-common-responses',
       items: [
         {
-          name: 'Continue in chat',
+          name: '在聊天中继续',
           icon: ChatWithAiIcon(),
           testId: 'answer-continue-in-chat',
           handler: () => {
@@ -205,7 +205,7 @@ function buildPageResponseConfig<T extends keyof BlockSuitePresets.AIActions>(
           },
         },
         {
-          name: 'Regenerate',
+          name: '重新生成',
           icon: ResetIcon(),
           testId: 'answer-regenerate',
           handler: () => {
@@ -214,7 +214,7 @@ function buildPageResponseConfig<T extends keyof BlockSuitePresets.AIActions>(
           },
         },
         {
-          name: 'Discard',
+          name: '丢弃',
           icon: DeleteIcon(),
           testId: 'answer-discard',
           handler: () => {
@@ -232,7 +232,7 @@ export function buildErrorResponseConfig(panel: AffineAIPanelWidget) {
       name: '',
       items: [
         {
-          name: 'Retry',
+          name: '重试',
           icon: ResetIcon(),
           testId: 'error-retry',
           showWhen: () => true,
@@ -242,7 +242,7 @@ export function buildErrorResponseConfig(panel: AffineAIPanelWidget) {
           },
         },
         {
-          name: 'Discard',
+          name: '丢弃',
           icon: DeleteIcon(),
           testId: 'error-discard',
           showWhen: () => !!panel.answer,
