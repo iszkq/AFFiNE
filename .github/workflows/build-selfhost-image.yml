@@ -2,6 +2,9 @@ name: Build Self-hosted Image
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - canary
 
 permissions:
   contents: write
