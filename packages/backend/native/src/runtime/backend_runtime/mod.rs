@@ -69,7 +69,7 @@ use crate::{
   llm::{
     ByokDiscoveredModelOutput, ByokLocalLeaseOutput, ByokPolicyOutput, ByokProbeResultOutput, ByokProfileOutput,
     CreateByokLocalLeaseInput, CreateByokProfileInput, DiscoverByokModelsInput, ProbeByokDraftInput, ProbeByokProfileInput,
-    ReplaceByokProfileInput, RotateByokCredentialInput,
+    ReorderByokProfilesInput, ReplaceByokProfileInput, RotateByokCredentialInput,
   },
   runtime::config::{AppConfigChange, ServerConfig, ServerConfigHandle, save_app_config_changes},
 };

@@ -6,7 +6,8 @@ use reqwest::{Client, StatusCode};
 use serde_json::Value;
 use url::Url;
 
-use super::{RuntimeError, RuntimeResult, webpki_tls_config};
+use super::{RuntimeError, RuntimeResult};
+use super::super::webpki_tls_config;
 use crate::llm::{
   ByokDiscoveredModelOutput, DiscoverByokModelsInput,
   byok::{ByokEndpoint, ByokPolicy, validate_endpoint},
@@ -14,7 +15,7 @@ use crate::llm::{
 
 const MAX_RESPONSE_BYTES: usize = 16 * 1024 * 1024;
 
-pub(super) async fn discover(
+pub(in crate::runtime::backend_runtime) async fn discover(
   input: DiscoverByokModelsInput,
   policy: &ByokPolicy,
 ) -> RuntimeResult<Vec<ByokDiscoveredModelOutput>> {
