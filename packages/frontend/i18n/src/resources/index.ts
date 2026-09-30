@@ -63,10 +63,7 @@ export const SUPPORTED_LANGUAGES: Record<
     name: 'Simplified Chinese',
     originalName: '简体中文',
     flagEmoji: '🇨🇳',
-    // The Chinese catalog intentionally falls back to English for newly added
-    // keys until they are translated. Keep the resource typed as a complete
-    // catalog so generated i18n types remain compatible with the fallback.
-    resource: zhHans as unknown as LanguageResource,
+    resource: zhHans,
   },
   'zh-Hant': {
     name: 'Traditional Chinese',

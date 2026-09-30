@@ -130,13 +130,13 @@ export class ChatInputPreference extends SignalWatcher(
           middleware: modelSubMenuMiddleware,
           postfix: html`
             <span class="ai-active-model-name">
-              ${this.model.value?.name ?? 'Auto'}
+              ${this.model.value?.name ?? '自动'}
             </span>
           `,
           options: {
             items: [
               menu.action({
-                name: 'Auto',
+                name: '自动',
                 prefix: html`
                   <div class="ai-model-prefix">
                     ${
@@ -169,7 +169,7 @@ export class ChatInputPreference extends SignalWatcher(
                   select: () => {
                     if (!model.available) {
                       this.notificationService.toast(
-                        'This model requires an AFFiNE AI subscription.'
+                        '此模型需要 AFFiNE AI 订阅。'
                       );
                       this.onAISubscribe().catch(console.error);
                       return;
@@ -186,7 +186,7 @@ export class ChatInputPreference extends SignalWatcher(
 
     preferenceItems.push(
       menu.toggleSwitch({
-        name: 'Extended Thinking',
+        name: '扩展思考',
         prefix: ThinkingIcon(),
         on: this.extendedThinking,
         onChange: (value: boolean) => this.onExtendedThinkingChange?.(value),
@@ -196,7 +196,7 @@ export class ChatInputPreference extends SignalWatcher(
 
     searchItems.push(
       menu.toggleSwitch({
-        name: 'Workspace All Docs',
+        name: '搜索工作区全部文档',
         prefix: CloudWorkspaceIcon(),
         on:
           !!this.toolsConfigService.config.value.searchWorkspace &&
@@ -232,7 +232,7 @@ export class ChatInputPreference extends SignalWatcher(
       class="chat-input-preference-trigger"
     >
       <span class="chat-input-preference-trigger-label">
-        ${this.model.value?.category ?? 'Auto'}
+        ${this.model.value?.category ?? '自动'}
       </span>
       <span class="chat-input-preference-trigger-icon">
         ${ArrowDownSmallIcon()}
