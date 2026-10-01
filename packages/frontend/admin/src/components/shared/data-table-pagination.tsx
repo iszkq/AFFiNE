@@ -61,7 +61,7 @@ export function DataTablePagination<TData>({
   return (
     <div className="flex items-center justify-between md:px-2">
       <div className="flex items-center md:space-x-2">
-        <p className="text-sm font-medium max-md:hidden">Rows per page</p>
+        <p className="text-sm font-medium max-md:hidden">每页行数</p>
         <Select
           value={`${table.getState().pagination.pageSize}`}
           onValueChange={onPageSizeChange}
@@ -91,7 +91,7 @@ export function DataTablePagination<TData>({
             onClick={handleFirstPage}
             disabled={disabled || !table.getCanPreviousPage()}
           >
-            <span className="sr-only">Go to first page</span>
+            <span className="sr-only">第一页</span>
             <ChevronsLeftIcon className="h-4 w-4" />
           </Button>
           <Button
@@ -100,7 +100,7 @@ export function DataTablePagination<TData>({
             onClick={handlePreviousPage}
             disabled={disabled || !table.getCanPreviousPage()}
           >
-            <span className="sr-only">Go to previous page</span>
+            <span className="sr-only">上一页</span>
             <ChevronLeftIcon className="h-4 w-4" />
           </Button>
           <Button
@@ -109,7 +109,7 @@ export function DataTablePagination<TData>({
             onClick={handleNextPage}
             disabled={disabled || !table.getCanNextPage()}
           >
-            <span className="sr-only">Go to next page</span>
+            <span className="sr-only">下一页</span>
             <ChevronRightIcon className="h-4 w-4" />
           </Button>
           <Button
@@ -118,7 +118,7 @@ export function DataTablePagination<TData>({
             onClick={handleLastPage}
             disabled={disabled || !table.getCanNextPage()}
           >
-            <span className="sr-only">Go to last page</span>
+            <span className="sr-only">最后一页</span>
             <ChevronsRightIcon className="h-4 w-4" />
           </Button>
         </div>

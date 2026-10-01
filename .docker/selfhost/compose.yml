@@ -19,6 +19,10 @@ services:
       - REDIS_SERVER_HOST=redis
       - DATABASE_URL=postgresql://affine@postgres:5432/affine
       - DEPLOYMENT_TYPE=selfhosted
+      # Optional self-hosted limits. Values apply per user/workspace after restart.
+      # AFFINE_STORAGE_QUOTA_GB=0 keeps the built-in 100 GB limit.
+      - AFFINE_STORAGE_QUOTA_GB=${AFFINE_STORAGE_QUOTA_GB:-100}
+      - AFFINE_BLOB_LIMIT_MB=${AFFINE_BLOB_LIMIT_MB:-500}
     restart: unless-stopped
 
   affine_migration:
@@ -32,6 +36,8 @@ services:
       - REDIS_SERVER_HOST=redis
       - DATABASE_URL=postgresql://affine@postgres:5432/affine
       - DEPLOYMENT_TYPE=selfhosted
+      - AFFINE_STORAGE_QUOTA_GB=${AFFINE_STORAGE_QUOTA_GB:-100}
+      - AFFINE_BLOB_LIMIT_MB=${AFFINE_BLOB_LIMIT_MB:-500}
     depends_on:
       postgres:
         condition: service_healthy

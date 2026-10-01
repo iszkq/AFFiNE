@@ -266,50 +266,53 @@ export class TableBlockComponent extends CaptionedBlockComponent<TableBlockModel
             width: 'max-content',
           })}
         >
-          ${
-            showSelectionActions
-              ? html`<div
-                  class=${tableSelectionActions}
-                  contenteditable="false"
-                >
-                  <button
-                    class=${tableSelectionAction}
-                    ?disabled=${
-                      selectedRowCount < 1 ||
-                      selectedColumnCount < 1 ||
-                      (selectedRowCount === 1 && selectedColumnCount === 1)
-                    }
-                    @click=${(event: Event) => {
-                      event.stopPropagation();
-                      this.dataManager.mergeCells(areaSelection);
-                    }}
-                  >
-                    合并单元格
-                  </button>
-                  <button
-                    class=${tableSelectionAction}
-                    ?disabled=${
-                      !splitRow ||
-                      !splitColumn ||
-                      ((splitTarget?.rowSpan ?? 1) <= 1 &&
-                        (splitTarget?.colSpan ?? 1) <= 1 &&
-                        !splitTarget?.mergedInto)
-                    }
-                    @click=${(event: Event) => {
-                      event.stopPropagation();
-                      if (splitRow && splitColumn) {
-                        this.dataManager.splitCell(
-                          splitRow.rowId,
-                          splitColumn.columnId
-                        );
-                      }
-                    }}
-                  >
-                    拆分单元格
-                  </button>
-                </div>`
-              : nothing
-          }
+          ${html`<div
+            class=${tableSelectionActions}
+            contenteditable="false"
+            style=${styleMap({
+              visibility: showSelectionActions ? 'visible' : 'hidden',
+              pointerEvents: showSelectionActions ? 'auto' : 'none',
+            })}
+            aria-hidden=${showSelectionActions ? 'false' : 'true'}
+          >
+            <button
+              class=${tableSelectionAction}
+              ?disabled=${
+                selectedRowCount < 1 ||
+                selectedColumnCount < 1 ||
+                (selectedRowCount === 1 && selectedColumnCount === 1)
+              }
+              @click=${(event: Event) => {
+                event.stopPropagation();
+                if (areaSelection) {
+                  this.dataManager.mergeCells(areaSelection);
+                }
+              }}
+            >
+              合并单元格
+            </button>
+            <button
+              class=${tableSelectionAction}
+              ?disabled=${
+                !splitRow ||
+                !splitColumn ||
+                ((splitTarget?.rowSpan ?? 1) <= 1 &&
+                  (splitTarget?.colSpan ?? 1) <= 1 &&
+                  !splitTarget?.mergedInto)
+              }
+              @click=${(event: Event) => {
+                event.stopPropagation();
+                if (splitRow && splitColumn) {
+                  this.dataManager.splitCell(
+                    splitRow.rowId,
+                    splitColumn.columnId
+                  );
+                }
+              }}
+            >
+              拆分单元格
+            </button>
+          </div>`}
           <table class=${tableWrapper} ${ref(this.table$)}>
             <tbody class=${table}>
               ${repeat(

@@ -35,7 +35,7 @@ export function SettingsPage() {
 
   return (
     <div className="flex h-dvh flex-1 flex-col bg-background">
-      <Header title="Settings" />
+      <Header title="设置" />
       <AdminPanel
         expandedModules={expandedModules}
         onExpandedModulesChange={setExpandedModules}
@@ -170,7 +170,7 @@ const AdminPanel = ({
                   <div className="flex flex-col items-start text-left gap-1">
                     <div className="text-base font-semibold">{name}</div>
                     <div className="text-xs text-muted-foreground">
-                      Manage {name.toLowerCase()} settings
+                      管理{name}配置
                     </div>
                   </div>
                 </AccordionTrigger>
@@ -276,7 +276,7 @@ const AdminPanel = ({
                           }}
                           disabled={saving}
                         >
-                          Cancel
+                          取消
                         </Button>
                       ) : null}
                       <Button
@@ -289,7 +289,7 @@ const AdminPanel = ({
                         }}
                         disabled={!dirty || saving || hasValidationError}
                       >
-                        {saving ? 'Saving...' : 'Save'}
+                        {saving ? '保存中…' : '保存'}
                       </Button>
                     </div>
                   </div>

@@ -170,7 +170,7 @@ export function DataTableToolbar<TData>({
         </Popover>
         <div className="flex">
           <Input
-            placeholder="Search Workspace / Owner"
+            placeholder="搜索工作区 / 所有者"
             value={value}
             onChange={onValueChange}
             className="h-8 w-[150px] lg:w-[250px]"

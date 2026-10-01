@@ -25,10 +25,9 @@ export const ResetPasswordDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:w-[460px]">
         <DialogHeader>
-          <DialogTitle className="leading-7">Account Recovery Link</DialogTitle>
+          <DialogTitle className="leading-7">账号恢复链接</DialogTitle>
           <DialogDescription className="leading-6">
-            Please send this recovery link to the user and instruct them to
-            complete it.
+            请将此恢复链接发送给用户，并让用户完成后续操作。
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="mt-4">
@@ -36,12 +35,12 @@ export const ResetPasswordDialog = ({
             <Input
               type="text"
               value={link}
-              placeholder="Please type email to confirm"
+              placeholder="恢复链接"
               className="placeholder:opacity-50 text-ellipsis overflow-hidden whitespace-nowrap"
               readOnly
             />
             <Button type="button" onClick={onCopy} className="space-x-[10px]">
-              <CopyIcon size={20} /> <span>Copy and Close</span>
+              <CopyIcon size={20} /> <span>复制并关闭</span>
             </Button>
           </div>
         </DialogFooter>

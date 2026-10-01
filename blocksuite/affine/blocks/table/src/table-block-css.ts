@@ -66,6 +66,7 @@ export const tableSelectionActions = css({
   alignItems: 'center',
   gap: '6px',
   position: 'relative',
+  height: '34px',
   marginBottom: '6px',
   width: 'fit-content',
   zIndex: 5,

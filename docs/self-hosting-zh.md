@@ -110,7 +110,16 @@ docker compose -f compose.yml logs --tail=100 affine_migration affine
 
 可以把左侧的宿主机路径改成其他磁盘目录，例如 `/volume1/docker/affine/storage:/root/.affine/storage`；迁移前先停服务并完整复制原目录，确保新目录权限可被 Docker 访问。
 
-自托管免费计划的单文件大小、总存储和 Copilot 次数来自内置 entitlement 配额，不是 `config.json` 中的开关；改宿主机目录只会改变可用磁盘位置，不会提高应用层配额。需要更高配额时使用对应的自托管授权/计划，或在源码的 `affine_core` access-control 配额实现中调整后重新构建镜像。BYOK 使用你自己的模型接口时，不消耗 AFFiNE 云端套餐次数，但仍受自托管实例的访问控制和存储配额约束。
+自托管默认每个用户/工作区使用 100GB 存储、单文件 500MB。现在可以在 Compose 的 `affine` 和 `affine_migration` 服务中通过环境变量调整：
+
+```yaml
+AFFINE_STORAGE_QUOTA_GB=500
+AFFINE_BLOB_LIMIT_MB=2048
+```
+
+修改后重建容器即可生效。该配额是每个用户/工作区的应用层限制，硬盘路径本身不限制容量；实际可用空间仍受宿主机磁盘影响。文件存储路径可以在管理后台“设置 → 存储”中修改 `blob.storage` 和 `avatar.storage` 的 `config.path`，也可以直接修改 `config/config.json`。当前文件对象按 AFFiNE 的对象键保存在统一存储根目录，用户之间通过数据库权限和工作区引用隔离；系统暂不支持给每个用户建立完全独立的物理根目录。需要不同用户使用不同磁盘时，应配置 S3/R2 或拆分独立实例。
+
+BYOK 使用你自己的模型接口时，不消耗 AFFiNE 云端套餐次数，但仍受自托管实例的访问控制和存储配额约束。
 
 在 Linux amd64 构建机上，可按本仓库的 `.github/workflows/build-images.yml` 顺序构建单架构镜像（需要 Node 22、Yarn 4、Rust 和 Docker）：
 

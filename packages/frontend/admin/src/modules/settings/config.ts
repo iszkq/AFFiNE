@@ -47,12 +47,12 @@ const ALL_CONFIGURABLE_MODULES = Object.keys(CONFIG_DESCRIPTORS).filter(
 
 export const KNOWN_CONFIG_GROUPS = [
   {
-    name: 'Server',
+    name: '服务器',
     module: 'server',
     fields: ['externalUrl', 'name', 'hosts'],
   } as ConfigGroup<'server'>,
   {
-    name: 'Auth',
+    name: '账号与登录',
     module: 'auth',
     fields: [
       'allowSignup',
@@ -60,26 +60,26 @@ export const KNOWN_CONFIG_GROUPS = [
       {
         key: 'newAccountActionDelay',
         type: 'Number',
-        desc: 'Minimum account age in seconds before accounts can invite members, create invite links, or publish documents. Set to 0 to disable.',
+        desc: '账号创建后，允许邀请成员、创建邀请链接或发布文档前需要等待的秒数。设为 0 可关闭限制。',
       },
       // nested json object
       {
         key: 'passwordRequirements',
         sub: 'min',
         type: 'Number',
-        desc: 'Minimum length requirement of password',
+        desc: '密码最小长度',
       },
       {
         key: 'passwordRequirements',
         sub: 'max',
         type: 'Number',
-        desc: 'Maximum length requirement of password',
+        desc: '密码最大长度',
       },
     ],
     operations: [AuthSigningKeys],
   } as ConfigGroup<'auth'>,
   {
-    name: 'Notification',
+    name: '邮件通知',
     module: 'mailer',
     fields: [
       'SMTP.name',
@@ -93,57 +93,57 @@ export const KNOWN_CONFIG_GROUPS = [
     operations: [SendTestEmail],
   } as ConfigGroup<'mailer'>,
   {
-    name: 'Storage',
+    name: '存储',
     module: 'storages',
     fields: [
       {
         key: 'blob.storage',
-        desc: 'Complete storage configuration for user uploaded blobs',
+        desc: '用户上传文件的完整存储配置，可设置本地目录或对象存储。',
         type: 'JSON',
       },
       {
         key: 'avatar.storage',
-        desc: 'Complete storage configuration for user avatars',
+        desc: '用户头像的完整存储配置，可设置本地目录或对象存储。',
         type: 'JSON',
       },
       {
         key: 'avatar.publicPath',
         type: 'String',
-        desc: 'The public path prefix for user avatars(e.g. https://my-bucket.s3.amazonaws.com/)',
+        desc: '用户头像的公开访问地址前缀，例如 https://my-bucket.s3.amazonaws.com/。',
       },
     ],
   } as ConfigGroup<'storages'>,
   {
-    name: 'OAuth',
+    name: '第三方登录',
     module: 'oauth',
     fields: ['providers.google', 'providers.github', 'providers.oidc'],
   } as ConfigGroup<'oauth'>,
   {
-    name: 'AI BYOK',
+    name: 'AI 自带密钥',
     module: 'copilot',
     fields: [
       {
         key: 'enabled',
-        desc: 'Enable AI features. Workspace owners configure provider keys in Workspace Settings → Integrations → AI BYOK.',
+        desc: '启用 AI 功能。工作区所有者可在“工作区设置 → 集成 → AI 自带密钥”中配置服务商密钥。',
       },
       'byok.enabled',
       'byok.allowedProviders',
       'byok.allowCustomEndpoint',
       {
         key: 'byok.allowPrivateEndpoint',
-        desc: 'Allow workspace owners and admins to connect BYOK providers on private network endpoints. Only enable this for trusted workspaces.',
+        desc: '允许工作区所有者和管理员连接内网地址的 BYOK 服务商。仅对可信工作区启用。',
       },
     ],
   } as ConfigGroup<'copilot'>,
   {
-    name: 'Indexer',
+    name: '搜索索引',
     module: 'indexer',
     fields: [
       {
         key: 'provider.type',
         type: 'Enum',
         options: ['embedded', 'elasticsearch', 'manticoresearch'],
-        desc: 'Search provider. Embedded and Elasticsearch provide full search semantics; Manticore Search provides basic search semantics.',
+        desc: '搜索服务商。内置搜索和 Elasticsearch 支持完整搜索语义，Manticore Search 提供基础搜索能力。',
       },
       'provider.endpoint',
       'provider.apiKey',

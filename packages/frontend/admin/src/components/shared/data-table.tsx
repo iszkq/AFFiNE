@@ -115,7 +115,7 @@ export function SharedDataTable<TData extends { id: string }, TValue>({
                 d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
               />
             </svg>
-            <span>Loading...</span>
+            <span>加载中…</span>
           </div>
         ) : null}
         <Table>

@@ -107,7 +107,7 @@ fn resolve_grant(
       signed_payload: row.signed_payload.as_deref(),
     })
     .collect::<Vec<_>>();
-  resolve_entitlements(
+  let mut grant = resolve_entitlements(
     &AccessContext {
       deployment: match deployment {
         Deployment::Cloud => CoreDeployment::Cloud,
@@ -119,7 +119,33 @@ fn resolve_grant(
       license_public_key: AFFINE_PRO_PUBLIC_KEY,
     },
     &facts,
-  )
+  );
+
+  // Self-hosted administrators can override the built-in plan quota without
+  // changing the database or recompiling the frontend. The value is read on
+  // each entitlement resolution so a container restart applies the setting
+  // consistently to quota checks and quota display.
+  if deployment == Deployment::SelfHosted {
+    if let Some(quota_gb) = std::env::var("AFFINE_STORAGE_QUOTA_GB")
+      .ok()
+      .and_then(|value| value.parse::<i64>().ok())
+      .filter(|value| *value > 0)
+    {
+      grant.limits.storage_quota = quota_gb
+        .checked_mul(1024 * 1024 * 1024)
+        .unwrap_or(i64::MAX);
+    }
+    if let Some(blob_mb) = std::env::var("AFFINE_BLOB_LIMIT_MB")
+      .ok()
+      .and_then(|value| value.parse::<i64>().ok())
+      .filter(|value| *value > 0)
+    {
+      grant.limits.blob_limit = blob_mb
+        .checked_mul(1024 * 1024)
+        .unwrap_or(i64::MAX);
+    }
+  }
+  grant
 }
 
 pub(super) async fn resolve_workspace_entitlement(

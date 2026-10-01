@@ -206,8 +206,8 @@ export const ConfigRow = ({
           dangerouslySetInnerHTML={{ __html: desc }}
         />
         <div className="text-xs text-muted-foreground">
-          {source ? `Source: ${source}` : null}
-          {secret ? ` · ${configured ? 'Configured' : 'Not configured'}` : null}
+          {source ? `来源：${source}` : null}
+          {secret ? ` · ${configured ? '已配置' : '未配置'}` : null}
         </div>
       </div>
       <div
@@ -231,7 +231,7 @@ export const ConfigRow = ({
             className="mt-2 self-start"
             onClick={onClear}
           >
-            Reset override
+            恢复默认
           </Button>
         ) : null}
         {mergedError && (
