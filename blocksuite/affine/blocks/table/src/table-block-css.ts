@@ -72,7 +72,6 @@ export const tableSelectionActions = css({
   padding: '4px',
   borderRadius: '8px',
   backgroundColor: 'var(--affine-layer-background-overlay-panel, #fff)',
-  boxShadow: 'var(--affine-menu-shadow, 0 2px 12px rgb(0 0 0 / 15%))',
 });
 
 export const tableSelectionAction = css({

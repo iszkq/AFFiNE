@@ -7,6 +7,13 @@
     "name": "AFFiNE 自托管服务器",
     "externalUrl": "http://localhost:3010"
   },
+  "auth": {
+    "allowSignup": true,
+    "allowSignupForOauth": true
+  },
+  "flags": {
+    "allowGuestDemoWorkspace": false
+  },
   "copilot": {
     "enabled": true,
     "byok": {

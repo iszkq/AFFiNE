@@ -221,6 +221,20 @@ export class TableBlockComponent extends CaptionedBlockComponent<TableBlockModel
       : [];
     const splitRow = selectedRows[0];
     const splitColumn = selectedColumns[0];
+    const splitTarget =
+      splitRow && splitColumn
+        ? this.dataManager.getCell(splitRow.rowId, splitColumn.columnId)
+        : undefined;
+    const hasMergedTarget =
+      (splitTarget?.rowSpan ?? 1) > 1 ||
+      (splitTarget?.colSpan ?? 1) > 1 ||
+      Boolean(splitTarget?.mergedInto);
+    const showSelectionActions =
+      areaSelection &&
+      !this.dataManager.readonly$.value &&
+      (selectedRows.length > 1 ||
+        selectedColumns.length > 1 ||
+        hasMergedTarget);
     return html`
       <div
         contenteditable="false"
@@ -249,7 +263,7 @@ export class TableBlockComponent extends CaptionedBlockComponent<TableBlockModel
           })}
         >
           ${
-            areaSelection && !this.dataManager.readonly$.value
+            showSelectionActions
               ? html`<div
                   class=${tableSelectionActions}
                   contenteditable="false"
@@ -271,18 +285,9 @@ export class TableBlockComponent extends CaptionedBlockComponent<TableBlockModel
                     ?disabled=${
                       !splitRow ||
                       !splitColumn ||
-                      ((this.dataManager.getCell(
-                        splitRow?.rowId ?? '',
-                        splitColumn?.columnId ?? ''
-                      )?.rowSpan ?? 1) <= 1 &&
-                        (this.dataManager.getCell(
-                          splitRow?.rowId ?? '',
-                          splitColumn?.columnId ?? ''
-                        )?.colSpan ?? 1) <= 1 &&
-                        !this.dataManager.getCell(
-                          splitRow?.rowId ?? '',
-                          splitColumn?.columnId ?? ''
-                        )?.mergedInto)
+                      ((splitTarget?.rowSpan ?? 1) <= 1 &&
+                        (splitTarget?.colSpan ?? 1) <= 1 &&
+                        !splitTarget?.mergedInto)
                     }
                     @click=${(event: Event) => {
                       event.stopPropagation();

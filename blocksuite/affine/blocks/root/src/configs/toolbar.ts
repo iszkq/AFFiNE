@@ -64,6 +64,7 @@ import {
   DatabaseTableViewIcon,
   DeleteIcon,
   DuplicateIcon,
+  FontIcon,
   LinkedPageIcon,
   TeXIcon,
 } from '@blocksuite/icons/lit';
@@ -208,6 +209,84 @@ const alignActionGroup = {
     };
   },
 } as const satisfies ToolbarActionGenerator;
+
+type TableTextSelectionTarget = {
+  text: {
+    length: number;
+    format: (
+      index: number,
+      length: number,
+      attributes: { fontSize: string }
+    ) => void;
+  };
+  index: number;
+  length: number;
+};
+
+function getTableTextSelectionTarget(): TableTextSelectionTarget | null {
+  const selection = document.getSelection();
+  if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
+    return null;
+  }
+  const anchor = selection.anchorNode;
+  const element =
+    anchor instanceof Element ? anchor : (anchor?.parentElement ?? null);
+  const cell = element?.closest('affine-table-cell') as
+    | (HTMLElement & {
+        text?: TableTextSelectionTarget['text'];
+        inlineEditor?: {
+          getInlineRange: () => { index: number; length: number } | null;
+        };
+      })
+    | null;
+  const inlineRange = cell?.inlineEditor?.getInlineRange();
+  if (!cell?.text || !inlineRange || inlineRange.length <= 0) return null;
+  return {
+    text: cell.text,
+    index: inlineRange.index,
+    length: inlineRange.length,
+  };
+}
+
+const tableFontSizeAction = {
+  id: 'b.table-font-size',
+  when: () => Boolean(getTableTextSelectionTarget()),
+  content: () => {
+    const sizes = [12, 14, 16, 18, 22];
+    return html`
+      <editor-menu-button
+        .contentPadding="${'8px'}"
+        .button=${html`
+          <editor-icon-button aria-label="文字大小" .tooltip="${'文字大小'}">
+            ${FontIcon()} ${EditorChevronDown}
+          </editor-icon-button>
+        `}
+      >
+        <div data-size="small" data-orientation="vertical">
+          ${repeat(
+            sizes,
+            size => size,
+            size => html`
+              <editor-menu-action
+                aria-label="${size}px"
+                @click=${() => {
+                  const target = getTableTextSelectionTarget();
+                  if (target) {
+                    target.text.format(target.index, target.length, {
+                      fontSize: `${size}px`,
+                    });
+                  }
+                }}
+              >
+                <span class="label">${size}px</span>
+              </editor-menu-action>
+            `
+          )}
+        </div>
+      </editor-menu-button>
+    `;
+  },
+} as const satisfies ToolbarAction;
 
 const inlineTextActionGroup = {
   id: 'b.inline-text',
@@ -394,6 +473,7 @@ export const builtinToolbarConfig = {
     conversionsActionGroup,
     alignActionGroup,
     inlineTextActionGroup,
+    tableFontSizeAction,
     highlightActionGroup,
     turnIntoDatabase,
     turnIntoLinkedDoc,

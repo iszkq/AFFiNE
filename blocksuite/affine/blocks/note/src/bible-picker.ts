@@ -22,11 +22,10 @@ const style = `
   .affine-bible-toolbar button, .affine-bible-nav button { height: 28px; padding: 0 9px; border: 1px solid var(--affine-border-color, #ddd); border-radius: 6px; background: var(--affine-hover-color, #f7f7f7); color: inherit; cursor: pointer; }
   .affine-bible-toolbar button:disabled, .affine-bible-nav button:disabled { opacity: .45; cursor: default; }
   .affine-bible-results { flex: 1; min-height: 180px; overflow: auto; padding: 0 20px 12px; }
-  .affine-bible-result { display: grid; grid-template-columns: 24px 130px 1fr auto; gap: 8px; align-items: start; padding: 9px 6px; border-bottom: 1px solid var(--affine-border-color, #f0f0f0); cursor: pointer; border-radius: 5px; }
+  .affine-bible-result { display: grid; grid-template-columns: 130px 1fr auto; gap: 8px; align-items: start; padding: 9px 6px; border-bottom: 1px solid var(--affine-border-color, #f0f0f0); cursor: pointer; border-radius: 5px; }
   .affine-bible-result:hover { background: var(--affine-hover-color, #f7f7f7); }
   .affine-bible-result.is-selected { background: rgb(22 131 232 / 12%); outline: 1px solid rgb(22 131 232 / 35%); }
   .affine-bible-result.is-target { box-shadow: inset 3px 0 #1683e8; }
-  .affine-bible-check { appearance: auto !important; display: block !important; width: 16px !important; height: 16px !important; opacity: 1 !important; visibility: visible !important; margin: 4px 0; accent-color: #1683e8; }
   .affine-bible-ref { color: var(--affine-text-secondary-color, #777); font-size: 13px; }
   .affine-bible-text { line-height: 1.55; }
   .affine-bible-text mark { padding: 0 2px; border-radius: 2px; background: #ffe58f; color: inherit; }
@@ -39,7 +38,7 @@ const style = `
   .affine-bible-actions button { background: #1683e8; color: #fff; }
   .affine-bible-actions button.secondary, .affine-bible-close { background: var(--affine-hover-color, #f3f3f3); color: inherit; }
   .affine-bible-actions button:disabled { opacity: .45; cursor: default; }
-  @media (max-width: 600px) { .affine-bible-controls { grid-template-columns: 1fr 1fr; } .affine-bible-controls input { grid-column: 1 / -1; } .affine-bible-result { grid-template-columns: 24px 1fr auto; } .affine-bible-text { grid-column: 2 / -1; } .affine-bible-jump { grid-column: 3; grid-row: 1; } .affine-bible-toolbar { flex-wrap: wrap; } }
+  @media (max-width: 600px) { .affine-bible-controls { grid-template-columns: 1fr 1fr; } .affine-bible-controls input { grid-column: 1 / -1; } .affine-bible-result { grid-template-columns: 1fr auto; } .affine-bible-text { grid-column: 1 / -1; } .affine-bible-jump { grid-column: 2; grid-row: 1; } .affine-bible-toolbar { flex-wrap: wrap; } }
 `;
 
 function verseKey(verse: BibleVerse) {
@@ -171,6 +170,7 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
   const render = () => {
     updateChapterButtons();
     queryResults();
+    const isSearchMode = searchInput.value.trim().length > 0;
     resultList.replaceChildren();
     const totalPages = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
     page = Math.min(page, totalPages - 1);
@@ -191,19 +191,10 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
       row.tabIndex = 0;
       row.setAttribute('role', 'button');
       row.setAttribute('aria-label', verseLabel(verse));
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.className = 'affine-bible-check';
-      checkbox.setAttribute('aria-label', `选中 ${verseLabel(verse)}`);
-      checkbox.checked = selected.has(key);
       const toggle = () => {
         if (selected.has(key)) selected.delete(key);
         else selected.add(key);
         updateSelection();
-      };
-      checkbox.onclick = event => {
-        event.stopPropagation();
-        toggle();
       };
       const ref = document.createElement('span');
       ref.className = 'affine-bible-ref';
@@ -211,27 +202,29 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
       const text = document.createElement('span');
       text.className = 'affine-bible-text';
       highlight(text, verse.content, searchInput.value);
-      const jump = document.createElement('button');
-      jump.className = 'affine-bible-jump';
-      jump.textContent = '跳转原文';
-      jump.onclick = event => {
-        event.stopPropagation();
-        bookSelect.value = verse.book;
-        updateChapters();
-        chapterSelect.value = String(verse.chapter);
-        searchInput.value = '';
-        const chapterVerses = bible.filter(
-          item => item.book === verse.book && item.chapter === verse.chapter
-        );
-        page = Math.floor(
-          chapterVerses.findIndex(item => verseKey(item) === key) / PAGE_SIZE
-        );
-        targetKey = key;
-        render();
-        resultList
-          .querySelector('.is-target')
-          ?.scrollIntoView({ block: 'center' });
-      };
+      const jump = isSearchMode ? document.createElement('button') : undefined;
+      if (jump) {
+        jump.className = 'affine-bible-jump';
+        jump.textContent = '跳转原文';
+        jump.onclick = event => {
+          event.stopPropagation();
+          bookSelect.value = verse.book;
+          updateChapters();
+          chapterSelect.value = String(verse.chapter);
+          searchInput.value = '';
+          const chapterVerses = bible.filter(
+            item => item.book === verse.book && item.chapter === verse.chapter
+          );
+          page = Math.floor(
+            chapterVerses.findIndex(item => verseKey(item) === key) / PAGE_SIZE
+          );
+          targetKey = key;
+          render();
+          resultList
+            .querySelector('.is-target')
+            ?.scrollIntoView({ block: 'center' });
+        };
+      }
       row.onclick = toggle;
       row.onkeydown = event => {
         if (
@@ -242,7 +235,8 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
           toggle();
         }
       };
-      row.append(checkbox, ref, text, jump);
+      row.append(ref, text);
+      if (jump) row.append(jump);
       resultList.append(row);
     });
     const pageInfo = document.createElement('span');
@@ -405,8 +399,6 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
         const checked = selected.has(row.dataset.verseKey ?? '');
         row.classList.toggle('is-selected', checked);
         row.setAttribute('aria-pressed', String(checked));
-        const input = row.querySelector('input');
-        if (input) input.checked = checked;
       });
     selectionCount.textContent = `已选 ${selected.size} 节`;
     clearButton.disabled = selected.size === 0;

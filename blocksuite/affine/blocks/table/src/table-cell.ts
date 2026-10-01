@@ -406,92 +406,12 @@ export class TableCell extends SignalWatcher(
       return;
     }
     if (selected.type === 'area' && e.currentTarget instanceof HTMLElement) {
-      // Keep the inline selection before the context menu takes focus. The
-      // table selection is also updated for every text range, but it only
-      // identifies the cell; the inline range tells us which characters in
-      // that cell should receive the font-size attribute.
-      const inlineRange = this.inlineEditor?.getInlineRange();
-      const textRange =
-        inlineRange && inlineRange.length > 0
-          ? { index: inlineRange.index, length: inlineRange.length }
-          : undefined;
       const target = popupTargetFromElement(e.currentTarget);
       popMenu(target, {
         options: {
           items: [
             menu.group({
               items: [
-                menu.action({
-                  name: '合并单元格',
-                  select: () => {
-                    this.dataManager.mergeCells(selected);
-                  },
-                }),
-                menu.action({
-                  name: '拆分单元格',
-                  select: () => {
-                    const rows = this.dataManager.uiRows$.value;
-                    const columns = this.dataManager.uiColumns$.value;
-                    const row = rows[selected.rowStartIndex];
-                    const column = columns[selected.columnStartIndex];
-                    if (row && column)
-                      this.dataManager.splitCell(row.rowId, column.columnId);
-                  },
-                }),
-                menu.subMenu({
-                  name: '文字大小',
-                  options: {
-                    items: [12, 14, 16, 18, 22].map(size =>
-                      menu.action({
-                        name: `${size}px`,
-                        select: () => {
-                          const sizeAttribute = { fontSize: `${size}px` };
-                          // A text selection is the common case: format only
-                          // the selected characters in the cell that opened
-                          // the menu. This also makes the operation visible
-                          // immediately instead of changing the whole cell.
-                          if (textRange && this.text) {
-                            const index = Math.max(
-                              0,
-                              Math.min(textRange.index, this.text.length)
-                            );
-                            const length = Math.min(
-                              textRange.length,
-                              this.text.length - index
-                            );
-                            if (length > 0) {
-                              this.text.format(index, length, sizeAttribute);
-                              return;
-                            }
-                          }
-
-                          // If no characters are selected, retain the useful
-                          // area-selection behavior and format all text in the
-                          // selected cells.
-                          const rows = this.dataManager.uiRows$.value.slice(
-                            selected.rowStartIndex,
-                            selected.rowEndIndex + 1
-                          );
-                          const columns =
-                            this.dataManager.uiColumns$.value.slice(
-                              selected.columnStartIndex,
-                              selected.columnEndIndex + 1
-                            );
-                          rows.forEach(row =>
-                            columns.forEach(column => {
-                              const text = this.dataManager.getCell(
-                                row.rowId,
-                                column.columnId
-                              )?.text;
-                              if (text?.length)
-                                text.format(0, text.length, sizeAttribute);
-                            })
-                          );
-                        },
-                      })
-                    ),
-                  },
-                }),
                 menu.action({
                   name: '复制',
                   prefix: CopyIcon(),

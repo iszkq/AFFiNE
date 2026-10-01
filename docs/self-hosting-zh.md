@@ -82,6 +82,36 @@ docker compose -f compose.yml logs --tail=100 affine_migration affine
 
 随后在 1Panel 的网站管理中为该域名配置 HTTPS 和反向代理，目标为 `http://127.0.0.1:3010`。首次安装应先确认迁移任务成功，再访问站点。更新时先备份 `/opt/affine/data` 与 `/opt/affine/config`，修改 `.env` 中的固定镜像标签后重新拉取并启动。
 
+### 注册、访客和存储配置
+
+`config/config.json` 控制注册和访客入口。示例配置已经关闭未登录访客的本地 Demo 工作区：
+
+```json
+{
+  "auth": {
+    "allowSignup": true,
+    "allowSignupForOauth": true
+  },
+  "flags": {
+    "allowGuestDemoWorkspace": false
+  }
+}
+```
+
+把 `auth.allowSignup` 改成 `false` 会关闭邮箱注册，把 `auth.allowSignupForOauth` 改成 `false` 会阻止 OAuth 自动注册新账号；已有账号仍可登录。修改后重启 `affine` 容器。`flags.allowGuestDemoWorkspace=false` 后，未登录访问根路径会进入登录页，登录后才进入自己的工作区，不再自动创建 Demo 工作区。已有浏览器本地 Demo 工作区不会被服务器删除，可在工作区列表中手动删除一次。
+
+附件和头像默认保存到宿主机 `/opt/affine/data/storage`，PostgreSQL 数据保存到 `/opt/affine/data/postgres`，配置保存到 `/opt/affine/config`。这些目录来自 Compose 的挂载：
+
+```yaml
+./data/storage:/root/.affine/storage
+./data/postgres:/var/lib/postgresql/data
+./config:/root/.affine/config
+```
+
+可以把左侧的宿主机路径改成其他磁盘目录，例如 `/volume1/docker/affine/storage:/root/.affine/storage`；迁移前先停服务并完整复制原目录，确保新目录权限可被 Docker 访问。
+
+自托管免费计划的单文件大小、总存储和 Copilot 次数来自内置 entitlement 配额，不是 `config.json` 中的开关；改宿主机目录只会改变可用磁盘位置，不会提高应用层配额。需要更高配额时使用对应的自托管授权/计划，或在源码的 `affine_core` access-control 配额实现中调整后重新构建镜像。BYOK 使用你自己的模型接口时，不消耗 AFFiNE 云端套餐次数，但仍受自托管实例的访问控制和存储配额约束。
+
 在 Linux amd64 构建机上，可按本仓库的 `.github/workflows/build-images.yml` 顺序构建单架构镜像（需要 Node 22、Yarn 4、Rust 和 Docker）：
 
 ```bash
