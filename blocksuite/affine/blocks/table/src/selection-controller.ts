@@ -63,7 +63,7 @@ export class SelectionController implements ReactiveController {
     return this.host.getScale();
   }
 
-  widthAdjust(dragHandle: HTMLElement, event: MouseEvent) {
+  widthAdjust(dragHandle: HTMLElement, event: PointerEvent) {
     event.preventDefault();
     event.stopPropagation();
     const initialX = event.clientX;
@@ -75,7 +75,7 @@ export class SelectionController implements ReactiveController {
     if (!columnId) {
       return;
     }
-    const onMove = (event: MouseEvent) => {
+    const onMove = (event: PointerEvent) => {
       this.dataManager.widthAdjustColumnId$.value = columnId;
       this.dataManager.virtualWidth$.value = {
         columnId,
@@ -93,11 +93,13 @@ export class SelectionController implements ReactiveController {
         this.dataManager.setColumnWidth(columnId, width);
       }
 
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('pointermove', onMove, true);
+      window.removeEventListener('pointerup', onUp, true);
+      window.removeEventListener('pointercancel', onUp, true);
     };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+    window.addEventListener('pointermove', onMove, true);
+    window.addEventListener('pointerup', onUp, true);
+    window.addEventListener('pointercancel', onUp, true);
   }
   dragListener() {
     if (IS_MOBILE || this.dataManager.readonly$.value) {

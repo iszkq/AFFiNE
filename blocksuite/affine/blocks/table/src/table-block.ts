@@ -219,6 +219,12 @@ export class TableBlockComponent extends CaptionedBlockComponent<TableBlockModel
           areaSelection.columnEndIndex + 1
         )
       : [];
+    const selectedRowCount = areaSelection
+      ? areaSelection.rowEndIndex - areaSelection.rowStartIndex + 1
+      : 0;
+    const selectedColumnCount = areaSelection
+      ? areaSelection.columnEndIndex - areaSelection.columnStartIndex + 1
+      : 0;
     const splitRow = selectedRows[0];
     const splitColumn = selectedColumns[0];
     const splitTarget =
@@ -232,9 +238,7 @@ export class TableBlockComponent extends CaptionedBlockComponent<TableBlockModel
     const showSelectionActions =
       areaSelection &&
       !this.dataManager.readonly$.value &&
-      (selectedRows.length > 1 ||
-        selectedColumns.length > 1 ||
-        hasMergedTarget);
+      (selectedRowCount > 1 || selectedColumnCount > 1 || hasMergedTarget);
     return html`
       <div
         contenteditable="false"
@@ -271,7 +275,9 @@ export class TableBlockComponent extends CaptionedBlockComponent<TableBlockModel
                   <button
                     class=${tableSelectionAction}
                     ?disabled=${
-                      selectedRows.length === 1 && selectedColumns.length === 1
+                      selectedRowCount < 1 ||
+                      selectedColumnCount < 1 ||
+                      (selectedRowCount === 1 && selectedColumnCount === 1)
                     }
                     @click=${(event: Event) => {
                       event.stopPropagation();
