@@ -24,6 +24,8 @@ const style = `
   .affine-bible-result { display: grid; grid-template-columns: 24px 130px 1fr auto; gap: 8px; align-items: start; padding: 9px 6px; border-bottom: 1px solid var(--affine-border-color, #f0f0f0); cursor: pointer; border-radius: 5px; }
   .affine-bible-result:hover { background: var(--affine-hover-color, #f7f7f7); }
   .affine-bible-result.is-selected { background: rgb(22 131 232 / 12%); outline: 1px solid rgb(22 131 232 / 35%); }
+  .affine-bible-result.is-target { box-shadow: inset 3px 0 #1683e8; }
+  .affine-bible-check { appearance: auto !important; display: block !important; width: 16px !important; height: 16px !important; opacity: 1 !important; visibility: visible !important; margin: 4px 0; accent-color: #1683e8; }
   .affine-bible-ref { color: var(--affine-text-secondary-color, #777); font-size: 13px; }
   .affine-bible-text { line-height: 1.55; }
   .affine-bible-text mark { padding: 0 2px; border-radius: 2px; background: #ffe58f; color: inherit; }
@@ -35,6 +37,8 @@ const style = `
   .affine-bible-actions button, .affine-bible-close { height: 34px; padding: 0 14px; border: 0; border-radius: 6px; cursor: pointer; }
   .affine-bible-actions button { background: #1683e8; color: #fff; }
   .affine-bible-actions button.secondary, .affine-bible-close { background: var(--affine-hover-color, #f3f3f3); color: inherit; }
+  .affine-bible-actions button:disabled { opacity: .45; cursor: default; }
+  @media (max-width: 600px) { .affine-bible-controls { grid-template-columns: 1fr 1fr; } .affine-bible-controls input { grid-column: 1 / -1; } .affine-bible-result { grid-template-columns: 24px 1fr auto; } .affine-bible-text { grid-column: 2 / -1; } .affine-bible-jump { grid-column: 3; grid-row: 1; } .affine-bible-toolbar { flex-wrap: wrap; } }
 `;
 
 function verseKey(verse: BibleVerse) {
@@ -71,6 +75,7 @@ function highlight(container: HTMLElement, content: string, query: string) {
 
 export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
   const root = document.createElement('div');
+  document.querySelector('.affine-bible-picker')?.remove();
   root.className = 'affine-bible-picker';
   const books = [...new Set(bible.map(verse => verse.book))];
   const chaptersByBook = new Map<string, number[]>();
@@ -80,7 +85,8 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
     chaptersByBook.set(verse.book, chapters);
   }
   const bookSelect = document.createElement('select');
-  bookSelect.innerHTML = '<option value="">选择卷</option>';
+  bookSelect.innerHTML = '<option value="">全部卷（搜索）</option>';
+  bookSelect.setAttribute('aria-label', '选择卷');
   books.forEach(book => {
     const option = document.createElement('option');
     option.value = book;
@@ -88,15 +94,18 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
     bookSelect.append(option);
   });
   const chapterSelect = document.createElement('select');
+  chapterSelect.setAttribute('aria-label', '选择章');
   chapterSelect.disabled = true;
   chapterSelect.innerHTML = '<option value="">选择章</option>';
   const searchInput = document.createElement('input');
   searchInput.placeholder = '关键词，空格分隔';
+  searchInput.setAttribute('aria-label', '搜索经文');
   const resultList = document.createElement('div');
   resultList.className = 'affine-bible-results';
   const selected = new Set<string>();
   let results: BibleVerse[] = [];
   let page = 0;
+  let targetKey: string | undefined;
   const nav = document.createElement('div');
   nav.className = 'affine-bible-nav';
 
@@ -107,7 +116,7 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
     chapterSelect.replaceChildren();
     const placeholder = document.createElement('option');
     placeholder.value = '';
-    placeholder.textContent = bookSelect.value ? '选择章' : '先选择卷';
+    placeholder.textContent = bookSelect.value ? '全部章（搜索）' : '先选择卷';
     chapterSelect.append(placeholder);
     chapters.forEach(chapter => {
       const option = document.createElement('option');
@@ -116,7 +125,7 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
       chapterSelect.append(option);
     });
     chapterSelect.disabled = !bookSelect.value;
-    chapterSelect.value = '';
+    chapterSelect.value = chapters.length ? String(chapters[0]) : '';
   };
   const queryResults = () => {
     const terms = searchInput.value
@@ -146,6 +155,7 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
     return button;
   };
   const render = () => {
+    updateChapterButtons();
     queryResults();
     resultList.replaceChildren();
     const totalPages = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
@@ -154,22 +164,28 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
     if (!results.length) {
       const empty = document.createElement('div');
       empty.className = 'affine-bible-empty';
-      empty.textContent = bookSelect.value
-        ? '请选择章节，或输入关键词搜索'
-        : '请选择卷或输入关键词搜索';
+      empty.textContent = searchInput.value.trim()
+        ? '没有找到包含全部关键词的经文'
+        : '请选择卷和章，或输入关键词搜索';
       resultList.append(empty);
     }
     pageResults.forEach(verse => {
       const key = verseKey(verse);
       const row = document.createElement('div');
-      row.className = `affine-bible-result${selected.has(key) ? ' is-selected' : ''}`;
+      row.className = `affine-bible-result${key === targetKey ? ' is-target' : ''}`;
+      row.dataset.verseKey = key;
+      row.tabIndex = 0;
+      row.setAttribute('role', 'button');
+      row.setAttribute('aria-label', verseLabel(verse));
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
+      checkbox.className = 'affine-bible-check';
+      checkbox.setAttribute('aria-label', `选中 ${verseLabel(verse)}`);
       checkbox.checked = selected.has(key);
       const toggle = () => {
         if (selected.has(key)) selected.delete(key);
         else selected.add(key);
-        render();
+        updateSelection();
       };
       checkbox.onclick = event => {
         event.stopPropagation();
@@ -183,48 +199,88 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
       highlight(text, verse.content, searchInput.value);
       const jump = document.createElement('button');
       jump.className = 'affine-bible-jump';
-      jump.textContent = '查看本章';
+      jump.textContent = '跳转原文';
       jump.onclick = event => {
         event.stopPropagation();
         bookSelect.value = verse.book;
         updateChapters();
         chapterSelect.value = String(verse.chapter);
         searchInput.value = '';
-        page = 0;
-        updateChapterButtons();
+        const chapterVerses = bible.filter(
+          item => item.book === verse.book && item.chapter === verse.chapter
+        );
+        page = Math.floor(
+          chapterVerses.findIndex(item => verseKey(item) === key) / PAGE_SIZE
+        );
+        targetKey = key;
         render();
+        resultList
+          .querySelector('.is-target')
+          ?.scrollIntoView({ block: 'center' });
       };
       row.onclick = toggle;
+      row.onkeydown = event => {
+        if (
+          event.target === row &&
+          (event.key === ' ' || event.key === 'Enter')
+        ) {
+          event.preventDefault();
+          toggle();
+        }
+      };
       row.append(checkbox, ref, text, jump);
       resultList.append(row);
     });
     const pageInfo = document.createElement('span');
-    pageInfo.textContent = `${results.length ? page + 1 : 0} / ${results.length ? totalPages : 0} 页 · 已选 ${selected.size} 节`;
+    pageInfo.textContent = `${results.length ? page + 1 : 0} / ${results.length ? totalPages : 0} 页 · 共 ${results.length} 节`;
     nav.replaceChildren(
       makeButton('上一页', page <= 0, () => {
         page -= 1;
         render();
+        resultList.scrollTop = 0;
       }),
       pageInfo,
       makeButton('下一页', page >= totalPages - 1, () => {
         page += 1;
         render();
+        resultList.scrollTop = 0;
       })
     );
+    updateSelection();
   };
-  const close = () => root.remove();
+  const originalFocus = document.activeElement;
+  const close = () => {
+    root.remove();
+    if (originalFocus instanceof HTMLElement) originalFocus.focus();
+  };
+  const selectedText = () =>
+    selectedVerses()
+      .map(verse => `${verseLabel(verse)} ${verse.content}`)
+      .join('\n');
   const copySelected = async () => {
-    const verses = selectedVerses();
-    if (!verses.length) return;
+    const text = selectedText();
+    if (!text) return;
     try {
-      await navigator.clipboard?.writeText(
-        verses.map(verse => `${verseLabel(verse)} ${verse.content}`).join('\n')
-      );
-    } catch (error) {
-      console.error('复制经文失败', error);
+      if (!navigator.clipboard?.writeText)
+        throw new Error('Clipboard unavailable');
+      await navigator.clipboard.writeText(text);
+      selectionCount.textContent = `已复制 ${selected.size} 节`;
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.cssText = 'position:fixed;left:-9999px;top:0';
+      root.append(textarea);
+      textarea.select();
+      const copied = document.execCommand('copy');
+      textarea.remove();
+      copyButton.focus();
+      selectionCount.textContent = copied
+        ? `已复制 ${selected.size} 节`
+        : '复制失败，请选中后按 Ctrl+C';
     }
   };
   const insertSelected = () => {
+    if (std.store.readonly) return;
     const verses = selectedVerses();
     if (!verses.length) return;
     const parent = std.store.getParent(model);
@@ -245,6 +301,9 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
 
   const sheet = document.createElement('div');
   sheet.className = 'affine-bible-dialog';
+  sheet.setAttribute('role', 'dialog');
+  sheet.setAttribute('aria-modal', 'true');
+  sheet.setAttribute('aria-label', '圣经经文');
   const head = document.createElement('div');
   head.className = 'affine-bible-head';
   const title = document.createElement('div');
@@ -269,15 +328,13 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
   clearButton.textContent = '清除选中';
   clearButton.onclick = () => {
     selected.clear();
-    render();
+    updateSelection();
   };
   const previousChapter = document.createElement('button');
   previousChapter.textContent = '上一章';
   const nextChapter = document.createElement('button');
   nextChapter.textContent = '下一章';
   const chapterHint = document.createElement('span');
-  chapterHint.textContent =
-    '点击经文可选中/取消，支持多选；搜索结果中的关键词会高亮';
   const updateChapterButtons = () => {
     const chapters = chaptersByBook.get(bookSelect.value) ?? [];
     const current = chapters.indexOf(Number(chapterSelect.value));
@@ -288,6 +345,10 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
       current < 0 || current >= chapters.length - 1
         ? '已经是最后一章'
         : '查看下一章';
+    chapterHint.textContent =
+      current < 0
+        ? '输入关键词搜索，空格分隔多个关键词'
+        : `${bookSelect.value} 第 ${chapters[current]} 章${current === 0 ? ' · 已是第一章' : ''}${current === chapters.length - 1 ? ' · 已是最后一章' : ''}`;
   };
   const changeChapter = (offset: number) => {
     const chapters = chaptersByBook.get(bookSelect.value) ?? [];
@@ -295,8 +356,11 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
     const next = chapters[current + offset];
     if (next === undefined) return;
     chapterSelect.value = String(next);
+    searchInput.value = '';
+    targetKey = undefined;
     page = 0;
     render();
+    resultList.scrollTop = 0;
   };
   previousChapter.onclick = () => changeChapter(-1);
   nextChapter.onclick = () => changeChapter(1);
@@ -309,7 +373,10 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
   copyButton.className = 'secondary';
   copyButton.textContent = '复制选中经文';
   copyButton.onclick = () => void copySelected();
-  left.append(copyButton);
+  const selectionCount = document.createElement('span');
+  selectionCount.setAttribute('role', 'status');
+  selectionCount.style.cssText = 'align-self:center;font-size:13px';
+  left.append(copyButton, selectionCount);
   const right = document.createElement('div');
   right.className = 'affine-bible-actions-right';
   const insertButton = document.createElement('button');
@@ -317,6 +384,36 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
   insertButton.onclick = insertSelected;
   right.append(insertButton);
   actions.append(left, right);
+  const updateSelection = () => {
+    resultList
+      .querySelectorAll<HTMLElement>('.affine-bible-result')
+      .forEach(row => {
+        const checked = selected.has(row.dataset.verseKey ?? '');
+        row.classList.toggle('is-selected', checked);
+        row.setAttribute('aria-pressed', String(checked));
+        const input = row.querySelector('input');
+        if (input) input.checked = checked;
+      });
+    selectionCount.textContent = `已选 ${selected.size} 节`;
+    clearButton.disabled = selected.size === 0;
+    copyButton.disabled = selected.size === 0;
+    insertButton.disabled = selected.size === 0 || std.store.readonly;
+  };
+  root.addEventListener('copy', event => {
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement ||
+      !selected.size
+    )
+      return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.clipboardData?.setData('text/plain', selectedText());
+  });
+  root.addEventListener('keydown', event => {
+    event.stopPropagation();
+    if (event.key === 'Escape') close();
+  });
   sheet.append(head, controls, toolbar, resultList, nav, actions);
   root.append(sheet);
   root.addEventListener('click', event => {
@@ -331,18 +428,29 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
   document.body.append(root);
   bookSelect.onchange = () => {
     updateChapters();
+    if (searchInput.value.trim()) chapterSelect.value = '';
+    targetKey = undefined;
     page = 0;
     updateChapterButtons();
     render();
+    resultList.scrollTop = 0;
   };
   chapterSelect.onchange = () => {
+    searchInput.value = '';
+    targetKey = undefined;
     page = 0;
     updateChapterButtons();
     render();
+    resultList.scrollTop = 0;
   };
   searchInput.oninput = () => {
+    chapterSelect.value = searchInput.value.trim()
+      ? ''
+      : String((chaptersByBook.get(bookSelect.value) ?? [])[0] ?? '');
+    targetKey = undefined;
     page = 0;
     render();
+    resultList.scrollTop = 0;
   };
   updateChapters();
   updateChapterButtons();
