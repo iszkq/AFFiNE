@@ -406,6 +406,15 @@ export class TableCell extends SignalWatcher(
       return;
     }
     if (selected.type === 'area' && e.currentTarget instanceof HTMLElement) {
+      // Keep the inline selection before the context menu takes focus. The
+      // table selection is also updated for every text range, but it only
+      // identifies the cell; the inline range tells us which characters in
+      // that cell should receive the font-size attribute.
+      const inlineRange = this.inlineEditor?.getInlineRange();
+      const textRange =
+        inlineRange && inlineRange.length > 0
+          ? { index: inlineRange.index, length: inlineRange.length }
+          : undefined;
       const target = popupTargetFromElement(e.currentTarget);
       popMenu(target, {
         options: {
@@ -436,6 +445,29 @@ export class TableCell extends SignalWatcher(
                       menu.action({
                         name: `${size}px`,
                         select: () => {
+                          const sizeAttribute = { fontSize: `${size}px` };
+                          // A text selection is the common case: format only
+                          // the selected characters in the cell that opened
+                          // the menu. This also makes the operation visible
+                          // immediately instead of changing the whole cell.
+                          if (textRange && this.text) {
+                            const index = Math.max(
+                              0,
+                              Math.min(textRange.index, this.text.length)
+                            );
+                            const length = Math.min(
+                              textRange.length,
+                              this.text.length - index
+                            );
+                            if (length > 0) {
+                              this.text.format(index, length, sizeAttribute);
+                              return;
+                            }
+                          }
+
+                          // If no characters are selected, retain the useful
+                          // area-selection behavior and format all text in the
+                          // selected cells.
                           const rows = this.dataManager.uiRows$.value.slice(
                             selected.rowStartIndex,
                             selected.rowEndIndex + 1
@@ -452,9 +484,7 @@ export class TableCell extends SignalWatcher(
                                 column.columnId
                               )?.text;
                               if (text?.length)
-                                text.format(0, text.length, {
-                                  fontSize: `${size}px`,
-                                });
+                                text.format(0, text.length, sizeAttribute);
                             })
                           );
                         },

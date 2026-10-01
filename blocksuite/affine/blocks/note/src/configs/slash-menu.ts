@@ -56,7 +56,12 @@ const noteSlashMenuConfig: SlashMenuConfig = {
         const index = parent.children.indexOf(model);
         const cardId = std.store.addBlock(
           'affine:callout',
-          { backgroundColorName: 'blue' },
+          {
+            // Give cards a visible logo even when the schema default is
+            // overridden by an older self-hosted document schema.
+            icon: { type: 'emoji', unicode: '🗂️' },
+            backgroundColorName: 'blue',
+          },
           parent,
           index + 1
         );

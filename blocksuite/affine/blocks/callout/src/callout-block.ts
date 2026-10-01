@@ -226,7 +226,9 @@ export class CalloutBlockComponent extends CaptionedBlockComponent<CalloutBlockM
       cssVarV2.block.callout.background as Record<string, string>
     )[normalizedBackgroundName ?? 'grey'];
 
-    const iconContent = getIcon(icon);
+    // Older callout blocks may have no icon in their stored props. Keep the
+    // card affordance visible for those blocks as well as newly inserted ones.
+    const iconContent = getIcon(icon) ?? '🗂️';
     const colors = [
       ['grey', '#f1f3f5'],
       ['red', '#ffe3e3'],

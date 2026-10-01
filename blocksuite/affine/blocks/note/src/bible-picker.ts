@@ -13,6 +13,7 @@ const style = `
   .affine-bible-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; border-bottom: 1px solid var(--affine-border-color, #eee); }
   .affine-bible-title { display: flex; align-items: center; gap: 8px; }
   .affine-bible-title-icon { display: inline-flex; width: 24px; height: 24px; color: #1683e8; }
+  .affine-bible-title-icon svg { width: 24px; height: 24px; }
   .affine-bible-head h2 { margin: 0; font-size: 18px; }
   .affine-bible-controls { display: grid; grid-template-columns: 1.2fr 1fr 2fr; gap: 8px; padding: 12px 20px 8px; }
   .affine-bible-controls input, .affine-bible-controls select { min-width: 0; height: 34px; padding: 0 10px; border: 1px solid var(--affine-border-color, #ddd); border-radius: 6px; background: transparent; color: inherit; }
@@ -71,6 +72,19 @@ function highlight(container: HTMLElement, content: string, query: string) {
     last = index + match[0].length;
   }
   container.append(document.createTextNode(content.slice(last)));
+}
+
+function createBibleLogo() {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.innerHTML = `
+    <path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v17H7.5A2.5 2.5 0 0 0 5 21.5v-17Z"
+      fill="currentColor" opacity=".18"/>
+    <path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v17H7.5A2.5 2.5 0 0 0 5 21.5v-17Zm2.5 0a.5.5 0 0 0-.5.5v13.8c.16-.05.33-.08.5-.08H18V4H7.5Z"
+      fill="currentColor"/>
+    <path d="M11.5 6.25h2v3h3v2h-3v3h-2v-3h-3v-2h3v-3Z" fill="currentColor"/>`;
+  return svg;
 }
 
 export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
@@ -310,7 +324,7 @@ export function openBiblePicker(std: BlockStdScope, model: BlockModel) {
   title.className = 'affine-bible-title';
   const icon = document.createElement('span');
   icon.className = 'affine-bible-title-icon';
-  icon.textContent = '📖';
+  icon.append(createBibleLogo());
   const heading = document.createElement('h2');
   heading.textContent = '圣经经文';
   title.append(icon, heading);
