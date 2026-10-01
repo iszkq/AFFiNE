@@ -59,6 +59,13 @@ export const AIUsagePanel = ({
     track.$.settingsPanel.accountUsage.viewPlans({ plan: SubscriptionPlan.AI });
   }, [onChangeSettingState]);
 
+  // Self-hosted instances use the administrator's own AI provider/BYOK setup.
+  // The cloud subscription counter (for example, 9/10 actions) does not
+  // describe that deployment and should not be shown to self-hosted users.
+  if (isSelfhosted) {
+    return null;
+  }
+
   if (loading) {
     if (loadError) {
       return (

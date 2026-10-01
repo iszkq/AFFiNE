@@ -58,7 +58,9 @@ export const StorageProgress = ({ onUpgrade }: StorageProgressProgress) => {
   );
 
   const loading =
-    proSubscription === null || percent === null || quotaName === null;
+    (!isSelfhosted && proSubscription === null) ||
+    percent === null ||
+    quotaName === null;
   const loadError = useLiveData(quota.error$);
 
   const buttonType = useMemo(() => {
@@ -82,7 +84,9 @@ export const StorageProgress = ({ onUpgrade }: StorageProgressProgress) => {
           <span>{t['com.affine.storage.used.hint']()}</span>
           <span>
             {usedFormatted}/{maxFormatted}
-            {` (${quotaName} ${t['com.affine.storage.plan']()})`}
+            {!isSelfhosted && quotaName
+              ? ` (${quotaName} ${t['com.affine.storage.plan']()})`
+              : null}
           </span>
         </div>
 
