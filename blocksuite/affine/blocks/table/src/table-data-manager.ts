@@ -287,11 +287,11 @@ export class TableDataManager {
   }
 
   mergeCells(selection: TableAreaSelection) {
-    const rows = this.rows$.value.slice(
+    const rows = this.uiRows$.value.slice(
       selection.rowStartIndex,
       selection.rowEndIndex + 1
     );
-    const columns = this.columns$.value.slice(
+    const columns = this.uiColumns$.value.slice(
       selection.columnStartIndex,
       selection.columnEndIndex + 1
     );
@@ -307,6 +307,15 @@ export class TableDataManager {
     const anchorId = `${firstRow.rowId}:${firstColumn.columnId}`;
     const anchor = this.model.props.cells[anchorId];
     if (!anchor) return;
+    // A selection can include cells from an older merged region. Normalize
+    // those cells first so the new rectangle always has one visible anchor.
+    const mergedAnchors = new Set<string>();
+    for (const row of rows) {
+      for (const column of columns) {
+        const cell = this.model.props.cells[`${row.rowId}:${column.columnId}`];
+        if (cell?.mergedInto) mergedAnchors.add(cell.mergedInto);
+      }
+    }
     const texts = rows
       .flatMap(row =>
         columns.map(
@@ -318,6 +327,12 @@ export class TableDataManager {
       )
       .filter(Boolean);
     this.model.store.transact(() => {
+      for (const item of Object.values(this.model.props.cells)) {
+        if (item.mergedInto && mergedAnchors.has(item.mergedInto)) {
+          delete item.mergedInto;
+        }
+      }
+      delete anchor.mergedInto;
       anchor.text.delete(0, anchor.text.length);
       anchor.text.insert(texts.join('\n'), 0);
       anchor.rowSpan = rows.length;
@@ -338,7 +353,8 @@ export class TableDataManager {
     const cell = this.model.props.cells[key];
     const anchorId = cell?.mergedInto ?? key;
     const anchor = this.model.props.cells[anchorId];
-    if (!anchor || (!anchor.rowSpan && !anchor.colSpan)) return;
+    if (!anchor || ((anchor.rowSpan ?? 1) <= 1 && (anchor.colSpan ?? 1) <= 1))
+      return;
     const [anchorRowId, anchorColumnId] = anchorId.split(':');
     this.model.store.transact(() => {
       for (const item of Object.values(this.model.props.cells)) {

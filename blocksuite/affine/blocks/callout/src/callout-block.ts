@@ -28,6 +28,8 @@ import { type StyleInfo, styleMap } from 'lit/directives/style-map.js';
 import {
   calloutBlockContainerStyles,
   calloutChildrenStyles,
+  calloutColorButtonStyles,
+  calloutColorPickerStyles,
   calloutEmojiContainerStyles,
   calloutEmojiStyles,
   calloutHostStyles,
@@ -225,6 +227,16 @@ export class CalloutBlockComponent extends CaptionedBlockComponent<CalloutBlockM
     )[normalizedBackgroundName ?? 'grey'];
 
     const iconContent = getIcon(icon);
+    const colors = [
+      ['grey', '#f1f3f5'],
+      ['red', '#ffe3e3'],
+      ['orange', '#ffecd1'],
+      ['yellow', '#fff4bf'],
+      ['green', '#dff5e5'],
+      ['teal', '#d9f4f0'],
+      ['blue', '#dff0ff'],
+      ['purple', '#eee3ff'],
+    ] as const;
 
     return html`
       <div
@@ -234,6 +246,26 @@ export class CalloutBlockComponent extends CaptionedBlockComponent<CalloutBlockM
           backgroundColor: backgroundColor ?? 'transparent',
         })}
       >
+        <div
+          class=${calloutColorPickerStyles}
+          contenteditable="false"
+          title="选择卡片颜色"
+        >
+          ${colors.map(
+            ([name, color]) => html`<button
+              class=${calloutColorButtonStyles}
+              style=${styleMap({ backgroundColor: color })}
+              aria-label=${`卡片颜色：${name}`}
+              title=${`卡片颜色：${name}`}
+              @click=${(event: Event) => {
+                event.stopPropagation();
+                this.store.updateBlock(this.model, {
+                  backgroundColorName: name,
+                });
+              }}
+            ></button>`
+          )}
+        </div>
         ${
           iconContent
             ? html`

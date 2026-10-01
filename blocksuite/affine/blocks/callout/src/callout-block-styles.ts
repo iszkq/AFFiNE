@@ -10,6 +10,7 @@ export const calloutBlockContainerStyles = css({
   alignItems: 'flex-start',
   padding: '5px 10px',
   borderRadius: '8px',
+  position: 'relative',
 });
 
 export const calloutEmojiContainerStyles = css({
@@ -40,6 +41,27 @@ export const calloutChildrenStyles = css({
   flex: 1,
   minWidth: 0,
   paddingLeft: '10px',
+});
+
+export const calloutColorPickerStyles = css({
+  display: 'flex',
+  gap: '4px',
+  alignItems: 'center',
+  position: 'absolute',
+  top: '6px',
+  right: '8px',
+  opacity: 0.65,
+  transition: 'opacity 120ms ease',
+  ':hover': { opacity: 1 },
+});
+
+export const calloutColorButtonStyles = css({
+  width: '14px',
+  height: '14px',
+  padding: 0,
+  border: '1px solid rgb(0 0 0 / 18%)',
+  borderRadius: '50%',
+  cursor: 'pointer',
 });
 
 export const iconPickerContainerStyles = css({

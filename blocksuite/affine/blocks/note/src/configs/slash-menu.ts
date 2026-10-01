@@ -21,7 +21,11 @@ import {
   SlashMenuConfigExtension,
   type SlashMenuItem,
 } from '@blocksuite/affine-widget-slash-menu';
-import { HeadingsIcon } from '@blocksuite/icons/lit';
+import {
+  BookPanelIcon,
+  CardPanelIcon,
+  HeadingsIcon,
+} from '@blocksuite/icons/lit';
 import { BlockSelection } from '@blocksuite/std';
 import { Text } from '@blocksuite/store';
 
@@ -35,6 +39,7 @@ const noteSlashMenuConfig: SlashMenuConfig = {
     {
       name: '圣经经文',
       description: '按卷章或关键词搜索经文并插入文档。',
+      icon: BookPanelIcon(),
       searchAlias: ['bible', '经文', '圣经'],
       group: '4_Content & Media@0',
       action: ({ std, model }) => openBiblePicker(std, model),
@@ -42,6 +47,7 @@ const noteSlashMenuConfig: SlashMenuConfig = {
     {
       name: '卡片',
       description: '插入带标题、正文和颜色的卡片。',
+      icon: CardPanelIcon(),
       searchAlias: ['card', 'callout'],
       group: '4_Content & Media@1',
       action: ({ std, model }) => {
