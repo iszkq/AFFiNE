@@ -5,7 +5,7 @@ import {
   buildShowcaseWorkspace,
   createFirstAppData,
 } from '@affine/core/utils/first-app-data';
-import { ServerFeature } from '@affine/graphql';
+import { ServerDeploymentType, ServerFeature } from '@affine/graphql';
 import {
   useLiveData,
   useService,
@@ -53,21 +53,22 @@ export const Component = ({
   const [createAttempt, setCreateAttempt] = useState(0);
   const authService = useService(AuthService);
   const defaultServerService = useService(DefaultServerService);
+  const serverConfig = useLiveData(defaultServerService.server.config$);
 
   const loggedIn = useLiveData(
     authService.session.status$.map(s => s === 'authenticated')
   );
+  const isSelfHosted = serverConfig?.type === ServerDeploymentType.Selfhosted;
   const enableLocalWorkspace =
-    useLiveData(
-      defaultServerService.server.config$.selector(
-        c =>
-          c.features.includes(ServerFeature.LocalWorkspace) ||
-          BUILD_CONFIG.isNative
-      )
-    ) ?? true;
+    !isSelfHosted &&
+    (serverConfig?.features.includes(ServerFeature.LocalWorkspace) ||
+      BUILD_CONFIG.isNative);
 
   const workspacesService = useService(WorkspacesService);
   const list = useLiveData(workspacesService.list.workspaces$);
+  const availableList = isSelfHosted
+    ? list.filter(workspace => workspace.flavour !== 'local')
+    : list;
   const listIsLoading = useLiveData(workspacesService.list.isRevalidating$);
 
   const { openPage, jumpToPage, jumpToSignIn } = useNavigateHelper();
@@ -108,20 +109,21 @@ export const Component = ({
     // check is user logged in && has cloud workspace
     if (searchParams.get('initCloud') === 'true') {
       if (loggedIn) {
-        if (list.every(w => w.flavour !== 'affine-cloud')) {
+        if (availableList.every(w => w.flavour !== 'affine-cloud')) {
           createCloudWorkspace();
           return;
         }
 
         // open first cloud workspace
         const openWorkspace =
-          list.find(w => w.flavour === 'affine-cloud') ?? list[0];
+          availableList.find(w => w.flavour === 'affine-cloud') ??
+          availableList[0];
         openPage(openWorkspace.id, defaultIndexRoute);
       } else {
         return;
       }
     } else {
-      if (list.length === 0) {
+      if (availableList.length === 0) {
         if (BUILD_CONFIG.isMobileEdition && enableLocalWorkspace) {
           return;
         }
@@ -131,13 +133,19 @@ export const Component = ({
       // open last workspace
       const lastId = localStorage.getItem('last_workspace_id');
 
-      const openWorkspace = list.find(w => w.id === lastId) ?? list[0];
+      const openWorkspace =
+        availableList.find(w => w.id === lastId) ?? availableList[0];
+      if (!openWorkspace) {
+        setNavigating(false);
+        return;
+      }
       openPage(openWorkspace.id, defaultIndexRoute, RouteLogic.REPLACE);
     }
   }, [
     enableLocalWorkspace,
     createCloudWorkspace,
     list,
+    availableList,
     openPage,
     searchParams,
     jumpToSignIn,
@@ -154,7 +162,7 @@ export const Component = ({
   }, [desktopApi]);
 
   useEffect(() => {
-    if (listIsLoading || list.length > 0 || !enableLocalWorkspace) {
+    if (listIsLoading || availableList.length > 0 || !enableLocalWorkspace) {
       return;
     }
 
@@ -189,6 +197,7 @@ export const Component = ({
     workspacesService,
     listIsLoading,
     list,
+    availableList,
     enableLocalWorkspace,
     createAttempt,
   ]);

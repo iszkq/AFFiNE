@@ -5,7 +5,11 @@ import { useSignOut } from '@affine/core/components/hooks/affine/use-sign-out';
 import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
 import { useNavigateHelper } from '@affine/core/components/hooks/use-navigate-helper';
 import type { AuthAccountInfo, Server } from '@affine/core/modules/cloud';
-import { AuthService, ServersService } from '@affine/core/modules/cloud';
+import {
+  AuthService,
+  DefaultServerService,
+  ServersService,
+} from '@affine/core/modules/cloud';
 import { GlobalDialogService } from '@affine/core/modules/dialogs';
 import { GlobalContextService } from '@affine/core/modules/global-context';
 import {
@@ -13,6 +17,7 @@ import {
   WorkspaceService,
   WorkspacesService,
 } from '@affine/core/modules/workspace';
+import { ServerDeploymentType, ServerFeature } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import {
   AccountIcon,
@@ -236,6 +241,12 @@ export const AFFiNEWorkspaceList = ({
 }) => {
   const workspacesService = useService(WorkspacesService);
   const workspaces = useLiveData(workspacesService.list.workspaces$);
+  const defaultServerService = useService(DefaultServerService);
+  const defaultServerConfig = useLiveData(defaultServerService.server.config$);
+  const allowLocalWorkspace =
+    defaultServerConfig?.type !== ServerDeploymentType.Selfhosted &&
+    (defaultServerConfig?.features.includes(ServerFeature.LocalWorkspace) ||
+      BUILD_CONFIG.isNative);
 
   const confirmEnableCloud = useEnableCloud();
 
@@ -261,9 +272,9 @@ export const AFFiNEWorkspaceList = ({
   const localWorkspaces = useMemo(
     () =>
       workspaces.filter(
-        ({ flavour }) => flavour === 'local'
+        ({ flavour }) => flavour === 'local' && allowLocalWorkspace
       ) as WorkspaceMetadata[],
-    [workspaces]
+    [allowLocalWorkspace, workspaces]
   );
 
   const onClickEnableCloud = useCallback(

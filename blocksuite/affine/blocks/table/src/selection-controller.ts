@@ -111,28 +111,38 @@ export class SelectionController implements ReactiveController {
         event.stopPropagation();
       }
     });
-    this.host.disposables.addFromEvent(this.host, 'mousedown', event => {
-      const target = event.target;
-      if (!(target instanceof HTMLElement)) {
-        return;
-      }
-      const widthAdjustColumn = target.closest('[data-width-adjust-column-id]');
-      if (widthAdjustColumn instanceof HTMLElement) {
-        this.widthAdjust(widthAdjustColumn, event);
-        return;
-      }
-      const columnDragHandle = target.closest('[data-drag-column-id]');
-      if (columnDragHandle instanceof HTMLElement) {
-        this.columnDrag(columnDragHandle, event);
-        return;
-      }
-      const rowDragHandle = target.closest('[data-drag-row-id]');
-      if (rowDragHandle instanceof HTMLElement) {
-        this.rowDrag(rowDragHandle, event);
-        return;
-      }
-      this.onDragStart(event);
-    });
+    // Capture the gesture before a cell's contenteditable inline editor turns
+    // it into a native text selection. Without capture, dragging from one
+    // cell to another leaves only the first cell selected.
+    this.host.disposables.addFromEvent(
+      this.host,
+      'mousedown',
+      event => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+          return;
+        }
+        const widthAdjustColumn = target.closest(
+          '[data-width-adjust-column-id]'
+        );
+        if (widthAdjustColumn instanceof HTMLElement) {
+          this.widthAdjust(widthAdjustColumn, event);
+          return;
+        }
+        const columnDragHandle = target.closest('[data-drag-column-id]');
+        if (columnDragHandle instanceof HTMLElement) {
+          this.columnDrag(columnDragHandle, event);
+          return;
+        }
+        const rowDragHandle = target.closest('[data-drag-row-id]');
+        if (rowDragHandle instanceof HTMLElement) {
+          this.rowDrag(rowDragHandle, event);
+          return;
+        }
+        this.onDragStart(event);
+      },
+      { capture: true }
+    );
   }
   startColumnDrag(x: number, columnDragHandle: HTMLElement) {
     const columnId = columnDragHandle.dataset['dragColumnId'];
@@ -500,6 +510,12 @@ export class SelectionController implements ReactiveController {
           return;
         }
         selected = true;
+        // The browser may already have created a text range inside the first
+        // cell. Clear it before setting the table area selection; otherwise
+        // setSelected deliberately ignores the gesture as an external text
+        // selection.
+        event.preventDefault();
+        getSelection()?.removeAllRanges();
         const endX = event.clientX;
         const endY = event.clientY;
         const [left, right] = startX > endX ? [endX, startX] : [startX, endX];
