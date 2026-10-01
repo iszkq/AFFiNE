@@ -20,6 +20,8 @@ import {
   rowStyle,
   table,
   tableContainer,
+  tableSelectionAction,
+  tableSelectionActions,
   tableWrapper,
 } from './table-block-css';
 import { TableDataManager } from './table-data-manager';
@@ -206,6 +208,19 @@ export class TableBlockComponent extends CaptionedBlockComponent<TableBlockModel
     const rows = this.dataManager.uiRows$.value;
     const columns = this.dataManager.uiColumns$.value;
     const virtualPadding = this.virtualPaddingController.virtualPadding$.value;
+    const selection = this.selectionController.selected$.value;
+    const areaSelection = selection?.type === 'area' ? selection : undefined;
+    const selectedRows = areaSelection
+      ? rows.slice(areaSelection.rowStartIndex, areaSelection.rowEndIndex + 1)
+      : [];
+    const selectedColumns = areaSelection
+      ? columns.slice(
+          areaSelection.columnStartIndex,
+          areaSelection.columnEndIndex + 1
+        )
+      : [];
+    const splitRow = selectedRows[0];
+    const splitColumn = selectedColumns[0];
     return html`
       <div
         contenteditable="false"
@@ -233,6 +248,57 @@ export class TableBlockComponent extends CaptionedBlockComponent<TableBlockModel
             width: 'max-content',
           })}
         >
+          ${
+            areaSelection && !this.dataManager.readonly$.value
+              ? html`<div
+                  class=${tableSelectionActions}
+                  contenteditable="false"
+                >
+                  <button
+                    class=${tableSelectionAction}
+                    ?disabled=${
+                      selectedRows.length === 1 && selectedColumns.length === 1
+                    }
+                    @click=${(event: Event) => {
+                      event.stopPropagation();
+                      this.dataManager.mergeCells(areaSelection);
+                    }}
+                  >
+                    合并单元格
+                  </button>
+                  <button
+                    class=${tableSelectionAction}
+                    ?disabled=${
+                      !splitRow ||
+                      !splitColumn ||
+                      ((this.dataManager.getCell(
+                        splitRow?.rowId ?? '',
+                        splitColumn?.columnId ?? ''
+                      )?.rowSpan ?? 1) <= 1 &&
+                        (this.dataManager.getCell(
+                          splitRow?.rowId ?? '',
+                          splitColumn?.columnId ?? ''
+                        )?.colSpan ?? 1) <= 1 &&
+                        !this.dataManager.getCell(
+                          splitRow?.rowId ?? '',
+                          splitColumn?.columnId ?? ''
+                        )?.mergedInto)
+                    }
+                    @click=${(event: Event) => {
+                      event.stopPropagation();
+                      if (splitRow && splitColumn) {
+                        this.dataManager.splitCell(
+                          splitRow.rowId,
+                          splitColumn.columnId
+                        );
+                      }
+                    }}
+                  >
+                    拆分单元格
+                  </button>
+                </div>`
+              : nothing
+          }
           <table class=${tableWrapper} ${ref(this.table$)}>
             <tbody class=${table}>
               ${repeat(

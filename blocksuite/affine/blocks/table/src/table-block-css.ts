@@ -60,3 +60,30 @@ export const tableWrapper = css({
 export const table = css({});
 
 export const rowStyle = css({});
+
+export const tableSelectionActions = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '6px',
+  position: 'absolute',
+  top: '-34px',
+  left: '10px',
+  zIndex: 5,
+  padding: '4px',
+  borderRadius: '8px',
+  backgroundColor: 'var(--affine-layer-background-overlay-panel, #fff)',
+  boxShadow: 'var(--affine-menu-shadow, 0 2px 12px rgb(0 0 0 / 15%))',
+});
+
+export const tableSelectionAction = css({
+  height: '26px',
+  padding: '0 8px',
+  border: '1px solid var(--affine-border-color, #ddd)',
+  borderRadius: '5px',
+  background: 'transparent',
+  color: 'inherit',
+  cursor: 'pointer',
+  fontSize: '12px',
+  ':hover': { backgroundColor: 'var(--affine-hover-color, #f5f5f5)' },
+  ':disabled': { opacity: 0.45, cursor: 'default' },
+});
