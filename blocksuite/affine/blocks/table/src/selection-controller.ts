@@ -25,6 +25,9 @@ import { cleanSelection } from './utils';
 type Cells = string[][];
 const TEXT = 'text/plain';
 export class SelectionController implements ReactiveController {
+  private suppressClick = false;
+  private suppressClickTimer: number | undefined;
+
   constructor(public readonly host: TableBlockComponent) {
     this.host.addController(this);
   }
@@ -116,7 +119,22 @@ export class SelectionController implements ReactiveController {
     // cell to another leaves only the first cell selected.
     this.host.disposables.addFromEvent(
       this.host,
-      'mousedown',
+      'click',
+      event => {
+        if (!this.suppressClick) return;
+        event.preventDefault();
+        event.stopPropagation();
+        this.suppressClick = false;
+        if (this.suppressClickTimer !== undefined) {
+          window.clearTimeout(this.suppressClickTimer);
+          this.suppressClickTimer = undefined;
+        }
+      },
+      { capture: true }
+    );
+    this.host.disposables.addFromEvent(
+      this.host,
+      'pointerdown',
       event => {
         const target = event.target;
         if (!(target instanceof HTMLElement)) {
@@ -488,8 +506,10 @@ export class SelectionController implements ReactiveController {
 
     return false;
   };
-  onDragStart(event: MouseEvent) {
-    const target = event.target;
+  onDragStart(event: PointerEvent) {
+    const target =
+      this.host.ownerDocument.elementFromPoint(event.clientX, event.clientY) ??
+      event.target;
     if (!(target instanceof HTMLElement)) {
       return;
     }
@@ -502,14 +522,29 @@ export class SelectionController implements ReactiveController {
     if (!initCell) {
       selected = true;
     }
-    const onMove = (event: MouseEvent) => {
-      const target = event.target;
+    const onMove = (event: PointerEvent) => {
+      // contenteditable elements can retain pointer capture while the cursor
+      // moves over another cell, so event.target is not reliable here.
+      // Resolve the cell under the actual pointer coordinates instead.
+      const target =
+        this.host.ownerDocument.elementFromPoint(
+          event.clientX,
+          event.clientY
+        ) ?? event.target;
       if (target instanceof HTMLElement) {
         const cell = target.closest('affine-table-cell');
         if (!selected && initCell === cell) {
           return;
         }
         selected = true;
+        this.suppressClick = true;
+        if (this.suppressClickTimer !== undefined) {
+          window.clearTimeout(this.suppressClickTimer);
+        }
+        this.suppressClickTimer = window.setTimeout(() => {
+          this.suppressClick = false;
+          this.suppressClickTimer = undefined;
+        }, 500);
         // The browser may already have created a text range inside the first
         // cell. Clear it before setting the table area selection; otherwise
         // setSelected deliberately ignores the gesture as an external text
@@ -531,11 +566,13 @@ export class SelectionController implements ReactiveController {
       }
     };
     const onUp = () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('pointermove', onMove, true);
+      window.removeEventListener('pointerup', onUp, true);
+      window.removeEventListener('pointercancel', onUp, true);
     };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+    window.addEventListener('pointermove', onMove, true);
+    window.addEventListener('pointerup', onUp, true);
+    window.addEventListener('pointercancel', onUp, true);
   }
 
   setSelected(
