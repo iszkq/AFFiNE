@@ -194,7 +194,7 @@ jobs:
       - name: Build unsigned device archive
         working-directory: packages/frontend/apps/ios/App
         run: |
-          bundle exec pod install
+          pod install
           xcodebuild archive \
             -workspace App.xcworkspace \
             -scheme App \
