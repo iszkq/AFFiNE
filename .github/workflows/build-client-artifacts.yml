@@ -35,7 +35,9 @@ jobs:
         with:
           extra-flags: workspaces focus @affine/electron @affine/electron-renderer @affine-tools/cli @affine/monorepo @affine/nbstore @toeverything/infra
           hard-link-nm: false
-          nmHoistingLimits: workspaces
+          # rspack resolves swc-loader from the root toolchain; keep dependencies
+          # hoisted for this packaging job instead of isolating each workspace.
+          nmHoistingLimits: none
           enableScripts: true
 
       - name: Build AFFiNE native
