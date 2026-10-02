@@ -44,15 +44,18 @@ impl DocStoragePool {
   ) -> Result<IndexSearchResult> {
     let query: NativeIndexQuery = serde_json::from_str(&query)?;
     let options: NativeIndexSearchOptions = serde_json::from_str(&options)?;
-    Ok(
-      self
-        .inner
-        .get(universal_id)
-        .await?
-        .index_search(&table, query, options)
-        .await?
-        .into(),
-    )
+    let storage = self.inner.get(universal_id).await?;
+    match storage.index_search(&table, query, options).await {
+      Ok(result) => Ok(result.into()),
+      // A freshly created or rebuilt index is temporarily unavailable. Search
+      // is best effort, so return no matches until the indexer publishes its
+      // first checkpoint instead of poisoning the worker's LiveData stream.
+      Err(affine_nbstore::error::Error::IndexNotReady) => Ok(IndexSearchResult {
+        total: 0,
+        hits: vec![],
+      }),
+      Err(error) => Err(error.into()),
+    }
   }
 
   #[allow(clippy::too_many_arguments)]
@@ -70,15 +73,20 @@ impl DocStoragePool {
     let hits = hits
       .map(|value| serde_json::from_str::<NativeIndexSearchOptions>(&value))
       .transpose()?;
-    Ok(
-      self
-        .inner
-        .get(universal_id)
-        .await?
-        .index_aggregate(&table, query, &field, limit, offset, hits)
-        .await?
-        .into(),
-    )
+    let storage = self.inner.get(universal_id).await?;
+    match storage
+      .index_aggregate(&table, query, &field, limit, offset, hits)
+      .await
+    {
+      Ok(result) => Ok(result.into()),
+      // Keep aggregate searches consistent with index_search while a local
+      // mobile index is being rebuilt.
+      Err(affine_nbstore::error::Error::IndexNotReady) => Ok(IndexAggregateResult {
+        total: 0,
+        buckets: vec![],
+      }),
+      Err(error) => Err(error.into()),
+    }
   }
 
   pub async fn index_delete_by_query(&self, universal_id: String, table: String, query: String) -> Result<u32> {
