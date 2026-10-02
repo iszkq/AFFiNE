@@ -55,7 +55,6 @@ jobs:
       - name: Package Windows app
         run: yarn affine @affine/electron package --platform=win32 --arch=x64
         env:
-          HOIST_NODE_MODULES: 1
           SKIP_WEB_BUILD: 1
           NODE_OPTIONS: --max-old-space-size=14384
 
