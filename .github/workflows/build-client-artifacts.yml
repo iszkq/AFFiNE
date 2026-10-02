@@ -209,7 +209,8 @@ jobs:
         run: |
           rm -rf "$RUNNER_TEMP/Payload"
           mkdir -p "$RUNNER_TEMP/Payload"
-          cp -R "$RUNNER_TEMP/AFFiNE.xcarchive/Products/Applications/App.app" "$RUNNER_TEMP/Payload/AFFiNE.app"
+          # The App scheme's target/product is named AFFiNE.app.
+          cp -R "$RUNNER_TEMP/AFFiNE.xcarchive/Products/Applications/AFFiNE.app" "$RUNNER_TEMP/Payload/AFFiNE.app"
           cd "$RUNNER_TEMP"
           zip -qry "AFFiNE-${{ inputs.app-version }}-unsigned.ipa" Payload
 
