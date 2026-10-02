@@ -158,7 +158,7 @@ jobs:
       - name: Setup Node.js
         uses: ./.github/actions/setup-node
         with:
-          extra-flags: workspaces focus @affine-tools/cli @affine/ios
+          extra-flags: workspaces focus @affine/monorepo @affine-tools/cli @affine/ios
           hard-link-nm: false
           enableScripts: false
 
