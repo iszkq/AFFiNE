@@ -171,8 +171,12 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
-          bundler-cache: true
+          bundler-cache: false
           working-directory: packages/frontend/apps/ios/App
+
+      - name: Install Ruby dependencies
+        working-directory: packages/frontend/apps/ios/App
+        run: bundle install --jobs 4 --retry 3
 
       - name: Build iOS web assets
         run: yarn affine @affine/ios build
