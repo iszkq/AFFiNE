@@ -35,9 +35,9 @@ jobs:
         with:
           extra-flags: workspaces focus @affine/electron @affine/electron-renderer @affine-tools/cli @affine/monorepo @affine/nbstore @toeverything/infra
           hard-link-nm: false
-          # Keep each workspace's direct runtime dependencies in its own
-          # node_modules so Electron Forge can copy them into the packaged app.
-          nmHoistingLimits: workspaces
+          # rspack resolves swc-loader from the root toolchain; keep the
+          # dependency tree hoisted for the desktop build.
+          nmHoistingLimits: none
           enableScripts: true
 
       - name: Build AFFiNE native
