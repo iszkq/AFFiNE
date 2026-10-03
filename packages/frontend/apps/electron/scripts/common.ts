@@ -89,7 +89,7 @@ export const config = (): BuildOptions => {
     platform: 'node',
     // Electron is provided by the runtime. Bundle electron-updater so the
     // packaged Windows app does not depend on a hoisted workspace symlink.
-    external: ['electron', 'yjs', 'semver'],
+    external: ['electron', 'yjs'],
     format: 'cjs',
     loader: {
       '.node': 'copy',
